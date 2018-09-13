@@ -1,0 +1,4 @@
+julia 1.0
+StaticArrays 0.8.2
+Rotations 0.7.1
+RigidBodyDynamics 1.0.0
