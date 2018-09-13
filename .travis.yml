@@ -1,0 +1,28 @@
+# Documentation: http://docs.travis-ci.com/user/languages/julia/
+language: julia
+os:
+  - linux
+  - osx
+julia:
+  - 0.7
+  - 1.0
+  - nightly
+addons:
+  apt:
+    packages:
+    - hdf5-tools # work around HDF5 install issue on Trusty, see https://discourse.julialang.org/t/hdf5-fails-on-travis-ci-with-trusty-works-with-precise/4961
+notifications:
+  email: false
+matrix:
+  allow_failures:
+    - julia: nightly
+#     - os: osx
+# uncomment the following lines to override the default test script
+#script:
+#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+#  - julia -e 'Pkg.clone(pwd()); Pkg.build("Rotations"); Pkg.test("Rotations"; coverage=true)'
+after_success:
+#    - if [ $TRAVIS_JULIA_VERSION = "release" ] && [ $TRAVIS_OS_NAME = "linux" ]; then
+    - if [ $TRAVIS_OS_NAME = "linux" ]; then
+         julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())';
+      fi
