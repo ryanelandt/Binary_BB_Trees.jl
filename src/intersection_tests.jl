@@ -15,10 +15,6 @@ function BB_BB_intersect(a::AABB, b::AABB, R_a_b::RotMatrix{3, Float64}, t_a_b::
 end
 
 function BB_BB_intersect(a::OBB, b::OBB, q_a_b::Quat{Float64}, t_a_b::SVector{3,Float64})
-    return BB_BB_intersect(a, b, RotMatrix{3, Float64}(q_a_b), t_a_b)
-end
-
-function BB_BB_intersect(a::OBB, b::OBB, q_a_b::Quat{Float64}, t_a_b::SVector{3,Float64})
     x_a_A = Transform3D(fA, fa, a.q, a.c)
     x_a_b = Transform3D(fb, fa, q_a_b, t_a_b)
     x_b_B = Transform3D(fB, fb, b.q, b.c)
