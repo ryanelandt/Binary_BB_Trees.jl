@@ -63,10 +63,10 @@ box_1_extent = SVector(1.0, 2.0, 3.0)
 box_2_extent = SVector(2.1, 2.2, 2.3)
 one_three    = SVector(1.0, 1.0, 1.0)
 zero_three   = SVector(0.0, 0.0, 0.0)
-n_face   = 6
-n_corner = 8
-n_edge   = 12
-tolerance = 1.0e-6
+n_face       = 6
+n_corner     = 8
+n_edge       = 12
+tolerance    = 1.0e-6
 
 @testset "OBB OBB Face Face Test" begin
   for k_face = 1:n_face
