@@ -1,4 +1,3 @@
-# we generate code in this module, so precompile where possible
 __precompile__(true)
 
 module BB_Intersections
@@ -20,4 +19,5 @@ export
 
     # intersection_tests
     BB_BB_intersect
+
 end # module
