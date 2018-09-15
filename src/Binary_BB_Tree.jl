@@ -20,6 +20,9 @@ export
     boundingBox,
 
     # intersection_tests
-    BB_BB_intersect
+    BB_BB_intersect,
+
+    # tree_types
+    bin_BB_Tree
 
 end # module
