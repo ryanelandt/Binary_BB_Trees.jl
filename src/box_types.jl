@@ -1,12 +1,12 @@
-abstract type bondingBox end
+abstract type boundingBox end
 
-struct AABB <: bondingBox
+struct AABB <: boundingBox
     c::SVector{3,Float64}
     e::SVector{3,Float64}
     AABB(c, e) = new(c, e)
 end
 
-struct OBB <: bondingBox
+struct OBB <: boundingBox
     c::SVector{3,Float64}
     e::SVector{3,Float64}
     q::Quat{Float64}

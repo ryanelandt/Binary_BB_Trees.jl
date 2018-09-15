@@ -10,14 +10,14 @@ using RigidBodyDynamics.Spatial
 import Statistics
 
 include("box_types.jl")
-include("intersection_tests.jl")
+include("BB_intersection.jl")
 include("tree_types.jl")
 
 export
     # box_types
     AABB,
     OBB,
-    bondingBox,
+    boundingBox,
 
     # intersection_tests
     BB_BB_intersect
