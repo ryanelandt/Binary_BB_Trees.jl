@@ -17,6 +17,7 @@ export
     # box_types
     AABB,
     OBB,
+    bondingBox,
 
     # intersection_tests
     BB_BB_intersect
