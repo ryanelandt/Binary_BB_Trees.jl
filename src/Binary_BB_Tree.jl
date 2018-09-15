@@ -11,8 +11,8 @@ import Statistics
 
 include("box_types.jl")
 include("BB_intersection.jl")
-include("tree_types.jl")
 include("vector_cache.jl")
+include("tree_types.jl")
 
 export
     # box_types.jl
@@ -23,12 +23,6 @@ export
     # intersection_tests.jl
     BB_BB_intersect,
 
-    # tree_types.jl
-    bin_BB_Tree,
-    TT_Cache,
-    isleaf,
-    tree_tree_intersect,
-
     # vector_cache.jl
     vectorCache,
     expand!,
@@ -36,6 +30,12 @@ export
     addCacheItem!,
     empty!,
     isempty,
-    length
+    length,
+
+    # tree_types.jl
+    bin_BB_Tree,
+    TT_Cache,
+    isleaf,
+    tree_tree_intersect
 
 end # module
