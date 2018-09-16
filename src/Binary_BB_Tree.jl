@@ -5,9 +5,11 @@ module Binary_BB_Tree
 using Rotations
 using LinearAlgebra
 using StaticArrays
+using DataStructures
 using RigidBodyDynamics.Spatial
 
-import Statistics
+# import Statistics
+using Statistics
 
 include("util.jl")
 include("box_types.jl")
@@ -16,6 +18,7 @@ include("vector_cache.jl")
 include("tree_types.jl")
 include("mesh_types.jl")
 include("mesh_for_box.jl")
+include("blob_types.jl")
 
 export
     # util.jl
@@ -55,6 +58,11 @@ export
     SurfaceVolumeMesh,
 
     # mesh_for_box.jl
-    boxMesh
+    boxMesh,
+
+    # blob_types.jl
+    blob,
+    triTetMeshToTreeAABB
+
 
 end # module
