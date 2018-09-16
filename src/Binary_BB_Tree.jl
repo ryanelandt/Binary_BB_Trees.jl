@@ -43,7 +43,8 @@ export
     # tree_types.jl
     bin_BB_Tree,
     TT_Cache,
-    isleaf,
+    is_leaf,
+    is_not_leaf,
     tree_tree_intersect,
 
     # mesh_types.jl
