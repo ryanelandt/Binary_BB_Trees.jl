@@ -13,6 +13,8 @@ include("box_types.jl")
 include("BB_intersection.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
+include("mesh_types.jl")
+include("mesh_for_box.jl")
 
 export
     # box_types.jl
@@ -36,6 +38,12 @@ export
     bin_BB_Tree,
     TT_Cache,
     isleaf,
-    tree_tree_intersect
+    tree_tree_intersect,
+
+    # mesh_types.jl
+    SurfaceVolumeMesh,
+
+    # mesh_for_box.jl
+    boxMesh
 
 end # module
