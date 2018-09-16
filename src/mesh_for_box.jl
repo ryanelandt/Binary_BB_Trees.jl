@@ -11,7 +11,7 @@ function cubeToFiveTets(i_in)
 end
 function twoTriangles!(v_tri, i_in)
     i1 = SVector{3, Int64}(1,3,4)
-    i2 = SVector{3, Int64}(1,4,3)
+    i2 = SVector{3, Int64}(1,4,2)
     push!(v_tri, i_in[i1])
     push!(v_tri, i_in[i2])
     return nothing
