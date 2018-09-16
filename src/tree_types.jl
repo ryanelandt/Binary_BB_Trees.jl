@@ -6,6 +6,12 @@ mutable struct bin_BB_Tree{T}
     function bin_BB_Tree{T}() where {T <: boundingBox}
         return new(-9999)
     end
+    function bin_BB_Tree{T}(id::Int64, BB::T) where {T <: boundingBox}
+        return new(id, BB)
+    end
+    function bin_BB_Tree{T}(id::Int64, BB::T, node_1::bin_BB_Tree{T}, node_2::bin_BB_Tree{T}) where {T <: boundingBox}
+        return new(id, BB, node_1, node_2)
+    end
 end
 
 mutable struct TT_Cache
