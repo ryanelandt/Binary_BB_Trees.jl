@@ -22,10 +22,11 @@ export
     svSvToAABB,
 
     # box_types.jl
+    boundingBox,
     AABB,
     OBB,
-    boundingBox,
     boxMinMax,
+    combineAABB,
 
     # intersection_tests.jl
     BB_BB_intersect,

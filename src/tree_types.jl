@@ -13,9 +13,10 @@ mutable struct bin_BB_Tree{T}
     #     return new(-9999, BB, node_1, node_2)
     # end
     function bin_BB_Tree{AABB}(node_1::bin_BB_Tree{AABB}, node_2::bin_BB_Tree{AABB})
-        min_1, max_1 = boxMinMax(node_1.box)
-        min_2, max_2 = boxMinMax(node_2.box)
-        aabb = svSvToAABB(SVector{4,SV3}(min_1, max_1, min_2, max_2))
+        # min_1, max_1 = boxMinMax(node_1.box)
+        # min_2, max_2 = boxMinMax(node_2.box)
+        # aabb = svSvToAABB(SVector{4,SVector{3,Float64}}(min_1, max_1, min_2, max_2))
+        aabb = combineAABB(node_1.box, node_2.box)
         return new(-9999, aabb, node_1, node_2)
     end
 end
