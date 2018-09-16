@@ -25,6 +25,8 @@ export
     boundingBox,
     AABB,
     OBB,
+    boxArea,
+    boxVolume,
     boxMinMax,
     combineAABB,
 
@@ -45,6 +47,8 @@ export
     TT_Cache,
     is_leaf,
     is_not_leaf,
+    treeDepth,
+    leafNumber,
     tree_tree_intersect,
 
     # mesh_types.jl
