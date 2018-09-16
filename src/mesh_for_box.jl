@@ -1,6 +1,4 @@
-const SV3 = SVector{3,Float64}  # TODO: remove this
-
-@inline basicBoxPoints() = [SV3(ifelse.(Tuple(k).==1,-1.0,+1.0)) for k = CartesianIndices((2,2,2))[:]]
+@inline basicBoxPoints() = [SVector{3,Float64}(ifelse.(Tuple(k).==1,-1.0,+1.0)) for k = CartesianIndices((2,2,2))[:]]
 function cubeToFiveTets(i_in)
     i1 = SVector{4, Int64}(1,2,4,6)
     i2 = SVector{4, Int64}(1,4,3,7)
@@ -24,7 +22,7 @@ function outputOrientedBoxFaces()
             SVector{4, Int64}(1,2,3,4),  # -z
             SVector{4, Int64}(5,7,6,8)]  # +z
 end
-function sizeCenterBoxPoints(scale::SVector{3,Float64}=SV3(1,1,1), center::SVector{3,Float64}=SV3(0,0,0))
+function sizeCenterBoxPoints(scale::SVector{3,Float64}=SVector{3,Float64}(1,1,1), center::SVector{3,Float64}=SVector{3,Float64}(0,0,0))
     v = basicBoxPoints()
     for k = eachindex(v)
         v[k] = v[k] .* scale .+ center
@@ -57,7 +55,7 @@ function outputBoxTriInd()
     [twoTriangles!(v_tri, k) for k = outputOrientedBoxFaces()]
     return v_tri
 end
-function boxMesh(rad_box::SV3=SV3(1,1,1), foam_depth::SV3=SV3(0,0,0), center::SV3=SV3(0,0,0))
+function boxMesh(rad_box::SVector{3,Float64}=SVector{3,Float64}(1,1,1), foam_depth::SVector{3,Float64}=SVector{3,Float64}(0,0,0), center::SVector{3,Float64}=SVector{3,Float64}(0,0,0))
     rad_inner = rad_box .* (1.0 .- foam_depth)
     points_30 = vcat(sizeCenterBoxPoints(rad_box, center), sizeCenterBoxPoints(rad_inner, center))
     is_reduce = foam_depth .== 1.0

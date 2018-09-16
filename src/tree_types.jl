@@ -3,16 +3,23 @@ mutable struct bin_BB_Tree{T}
     box::T
     node_1::bin_BB_Tree{T}
     node_2::bin_BB_Tree{T}
-    function bin_BB_Tree{T}() where {T <: boundingBox}
-        return new(-9999)
-    end
+    # function bin_BB_Tree{T}() where {T <: boundingBox}
+    #     return new(-9999)
+    # end
     function bin_BB_Tree{T}(id::Int64, BB::T) where {T <: boundingBox}
         return new(id, BB)
     end
-    function bin_BB_Tree{T}(id::Int64, BB::T, node_1::bin_BB_Tree{T}, node_2::bin_BB_Tree{T}) where {T <: boundingBox}
-        return new(id, BB, node_1, node_2)
+    # function bin_BB_Tree{T}(BB::T, node_1::bin_BB_Tree{T}, node_2::bin_BB_Tree{T}) where {T <: boundingBox}
+    #     return new(-9999, BB, node_1, node_2)
+    # end
+    function bin_BB_Tree{AABB}(node_1::bin_BB_Tree{AABB}, node_2::bin_BB_Tree{AABB})
+        min_1, max_1 = boxMinMax(node_1.box)
+        min_2, max_2 = boxMinMax(node_2.box)
+        aabb = svSvToAABB(SVector{4,SV3}(min_1, max_1, min_2, max_2))
+        return new(-9999, aabb, node_1, node_2)
     end
 end
+
 
 mutable struct TT_Cache
     vc::vectorCache{Tuple{Int64, Int64}}

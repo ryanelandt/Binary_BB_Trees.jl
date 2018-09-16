@@ -9,6 +9,7 @@ using RigidBodyDynamics.Spatial
 
 import Statistics
 
+include("util.jl")
 include("box_types.jl")
 include("BB_intersection.jl")
 include("vector_cache.jl")
@@ -17,10 +18,14 @@ include("mesh_types.jl")
 include("mesh_for_box.jl")
 
 export
+    # util.jl
+    svSvToAABB,
+
     # box_types.jl
     AABB,
     OBB,
     boundingBox,
+    boxMinMax,
 
     # intersection_tests.jl
     BB_BB_intersect,

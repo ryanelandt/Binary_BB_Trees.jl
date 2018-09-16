@@ -12,3 +12,5 @@ struct OBB <: boundingBox
     q::Quat{Float64}
     OBB(c, e, q) = new(c, e, q)
 end
+
+boxMinMax(a::AABB) = a.c - a.e, a.c + a.e
