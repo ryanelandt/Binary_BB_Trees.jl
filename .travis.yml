@@ -19,9 +19,16 @@ matrix:
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 #  - julia -e 'Pkg.clone(pwd()); Pkg.build("Rotations"); Pkg.test("Rotations"; coverage=true)'
-after_success:
+# after_success:
 #    - if [ $TRAVIS_JULIA_VERSION = "release" ] && [ $TRAVIS_OS_NAME = "linux" ]; then
 #     - if [ $TRAVIS_OS_NAME = "linux" ]; then
 #          julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())';
 #       fi
-  - julia --project -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+#   - julia --project -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+before_script:
+  - julia -e 'import Pkg; repo = Pkg.Types.GitRepo("https://github.com/ryanelandt/Tri_Tet_Intersections.jl", "master"); Pkg.add(Pkg.Types.PackageSpec(repo))'
+script:
+ - $TESTCMD -e 'import Pkg; Pkg.add(Pkg.PackageSpec(path=pwd())); Pkg.build(Binary_BB_Trees"); Pkg.test("Binary_BB_Trees"; coverage=true)'
+after_success:
+  # push coverage results to Codecov
+  - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
