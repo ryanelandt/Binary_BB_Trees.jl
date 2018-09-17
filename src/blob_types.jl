@@ -56,7 +56,7 @@ function blobCost(aabb::AABB, n_below::Int64)
     cA = 1.0
     cV = 1.0
     V = 0.0
-    V += n_below
+    V += n_below * log(2 * n_below)
     V += cA * boxArea(aabb)
     V += cV * boxVolume(aabb)
     return V  # PriorityQueue returns lowest first

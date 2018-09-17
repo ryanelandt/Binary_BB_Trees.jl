@@ -4,7 +4,7 @@ function cubeToFiveTets(i_in)
     i2 = SVector{4, Int64}(1,4,3,7)
     i3 = SVector{4, Int64}(1,6,7,5)
     i4 = SVector{4, Int64}(4,7,6,8)
-    i5 = SVector{4, Int64}(1,4,7,6)
+    i5 = SVector{4, Int64}(1,4,7,6)  # bigger one
     return i_in[i1], i_in[i2], i_in[i3], i_in[i4], i_in[i5]
 end
 function twoTriangles!(v_tri, i_in)
