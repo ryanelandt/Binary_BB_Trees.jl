@@ -27,8 +27,8 @@ matrix:
 #   - julia --project -e 'import Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 before_script:
   - julia -e 'import Pkg; repo = Pkg.Types.GitRepo("https://github.com/ryanelandt/Tri_Tet_Intersections.jl", "master"); Pkg.add(Pkg.Types.PackageSpec(repo))'
-script:
- - $TESTCMD -e 'import Pkg; Pkg.add(Pkg.PackageSpec(path=pwd())); Pkg.build(Binary_BB_Trees"); Pkg.test("Binary_BB_Trees"; coverage=true)'
+# script:
+ # - $TESTCMD -e 'import Pkg; Pkg.add(Pkg.PackageSpec(path=pwd())); Pkg.build(Binary_BB_Trees"); Pkg.test("Binary_BB_Trees"; coverage=true)'
 after_success:
   # push coverage results to Codecov
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
