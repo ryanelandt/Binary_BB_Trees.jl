@@ -1,6 +1,6 @@
 __precompile__(true)
 
-module Binary_BB_Tree
+module Binary_BB_Trees
 
 using Rotations
 using LinearAlgebra
