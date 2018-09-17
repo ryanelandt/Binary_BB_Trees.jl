@@ -2,8 +2,7 @@ using Test
 using LinearAlgebra
 using Rotations
 using StaticArrays
-using BB_Intersections
+using Binary_BB_Tree
 using RigidBodyDynamics.Spatial
 
 include("intersection_tests.jl")
-
