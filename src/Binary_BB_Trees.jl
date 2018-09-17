@@ -53,6 +53,7 @@ export
     treeDepth,
     leafNumber,
     tree_tree_intersect,
+    extractData,
 
     # mesh_types.jl
     SurfaceVolumeMesh,

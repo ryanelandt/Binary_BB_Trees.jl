@@ -39,6 +39,20 @@ function leafNumberDepth(t::bin_BB_Tree{AABB}, k_depth::Int64, k_leaf::Int64)
     return k_depth, k_leaf
 end
 
+function extractData!(tree::bin_BB_Tree, v::Vector{Int64})
+    if is_leaf(tree)
+        push!(v, tree.id)
+    else
+        extractData!(tree.node_1, v)
+        extractData!(tree.node_2, v)
+    end
+end
+function extractData(tree::bin_BB_Tree)
+    v = Vector{Int64}()
+    extractData!(tree, v)
+    return v
+end
+
 function tree_tree_intersect(tree_1::bin_BB_Tree{T}, tree_2::bin_BB_Tree{T}, ttCache::TT_Cache) where {T <: boundingBox}
     if BB_BB_intersect(tree_1.box, tree_2.box, ttCache.q_a_b, ttCache.t_a_b)
         is_leaf_1 = is_leaf(tree_1)
