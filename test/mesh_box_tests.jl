@@ -26,7 +26,16 @@ end
     for (k, dir_k) = enumerate(tup_dir)
         v_tri = Vector{SVector{3,SVector{3,Float64}}}()
         Binary_BB_Trees.twoTriangles!(v_tri, unit_cube_points[i_box_faces[k]])
-        @test dir_k ≈ triangleNormal(v_tri[2])
-        @test dir_k ≈ triangleNormal(v_tri[1])
+        tri_1 = v_tri[1]
+        tri_2 = v_tri[2]
+        @test dir_k ≈ triangleNormal(tri_2)
+        @test dir_k ≈ triangleNormal(tri_1)
+        area_tri_1 = area(tri_1)
+        area_tri_2 = area(tri_2)
+        @test area_tri_1 ≈ area_tri_2
+        @test 4.0 ≈ (area_tri_1 + area_tri_2)
+        centroid_1 = centroid(tri_1)
+        centroid_2 = centroid(tri_2)
+        @test dir_k ≈ ((centroid_1 + centroid_2) / 2)
     end
 end

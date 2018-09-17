@@ -1,4 +1,6 @@
-@inline basicBoxPoints() = [SVector{3,Float64}(ifelse.(Tuple(k).==1,-1.0,+1.0)) for k = CartesianIndices((2,2,2))[:]]
+# @inline basicBoxPoints() = [SVector{3,Float64}(ifelse.(Tuple(k).==1,-1.0,+1.0)) for k = CartesianIndices((2,2,2))[:]]
+box_indices() = [SVector(Tuple(k_cart)) for k_cart = CartesianIndices((2,2,2))[:]]
+basicBoxPoints() = [SVector{3,Float64}(ifelse.(Tuple(k).==1,-1.0,+1.0)) for k = box_indices()]
 function cubeToFiveTets(i_in)
     i1 = SVector{4, Int64}(1,2,4,6)
     i2 = SVector{4, Int64}(1,4,3,7)

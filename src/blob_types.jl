@@ -41,7 +41,7 @@ function createSharedEdgeFaceDict(vec_tri_tet::Vector{SVector{N,Int64}}) where {
             sv_new = sortEdgeFace(i_vertices, j)
             if haskey(dict_vert_pair, sv_new)
                 mv_existing = dict_vert_pair[sv_new]
-                @assert(mv_existing[2] .== -9999, "three tri/tet share the same edge something is wrong")
+                @assert(mv_existing[2] .== -9999, "three tri/tet $N share the same edge something is wrong")
                 mv_existing[2] = k_tet_tri
             else
                 dict_vert_pair[sv_new] = MVector{2,Int64}(k_tet_tri, -9999)
