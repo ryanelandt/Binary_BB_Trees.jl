@@ -86,7 +86,7 @@ end
 # box_indices() = [SVector(Tuple(k_cart)) for k_cart = CartesianIndices((2,2,2))[:]]
 # basicBoxPoints() = [SVector{3,Float64}(ifelse.(Tuple(k).==1,-1.0,+1.0)) for k = box_indices()]
 # function cubeToFiveTets(i_in)
-#     i1 = SVector{4, Int64}(1,2,4,6)
+#     i1 = SVector{4, Int64}ze about equilibrium points; in these cases u0 is a particular one that maintains the equilibrium. For non-equilibrium linearizations it can be anything. Linearization about a non-equilibrium state may occur during non-linear optimization (e.g. as part of a gradient descent scheme).(1,2,4,6)
 #     i2 = SVector{4, Int64}(1,4,3,7)
 #     i3 = SVector{4, Int64}(1,6,7,5)
 #     i4 = SVector{4, Int64}(4,7,6,8)
