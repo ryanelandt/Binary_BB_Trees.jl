@@ -60,10 +60,8 @@ function sizeCenterBoxPoints(scale::SVector{3,Float64}=SVector{3,Float64}(1,1,1)
     return v
 end
 function twoTriangles!(v_tri, i_in)
-    i1 = SVector{3, Int64}(1,3,4)
-    i2 = SVector{3, Int64}(1,4,2)
-    push!(v_tri, i_in[i1])
-    push!(v_tri, i_in[i2])
+    push!(v_tri, i_in[SVector{3, Int64}(1,3,4)])
+    push!(v_tri, i_in[SVector{3, Int64}(1,4,2)])
     return nothing
 end
 function outputBoxVolMesh(rad_box, foam_depth, center)
@@ -78,7 +76,6 @@ function outputBoxVolMesh(rad_box, foam_depth, center)
     end
     points_12 = Vector{SVector{3,Float64}}(undef, length(dict_points))
     for (key_k, k) = dict_points
-        println("k: ", k, " -- key_k: ", key_k)
         points_12[k] = key_k
     end
     return points_12, outputBoxTriInd(), vec_nondegenerate_tet
