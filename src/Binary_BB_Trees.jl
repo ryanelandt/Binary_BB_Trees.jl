@@ -59,7 +59,9 @@ export
     SurfaceVolumeMesh,
 
     # mesh_for_box.jl
-    boxMesh,
+    outputBoxVolMesh,
+    outputOrientedBoxFaces,
+    basicBoxPoints,
 
     # blob_types.jl
     blob,
