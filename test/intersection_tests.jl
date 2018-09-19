@@ -36,29 +36,34 @@ function outputEdgeByNumber(k::Int64)
   error("a cube has 12 edges")
 end
 
-function face_corner_test(dir_1::SVector{3,Float64}, dir_2::SVector{3,Float64})
+function face_corner_test(tt::TT_Cache, dir_1::SVector{3,Float64}, dir_2::SVector{3,Float64})
   aabb_1 = AABB(zero_three, box_1_extent)
   aabb_2 = AABB(zero_three, box_2_extent)
   vec_1 = dir_1 .* aabb_1.e
   vec_2 = dir_2 .* aabb_2.e
-  R_total = rotation_between(dir_2, dir_1)
+  R_total = RotMatrix(rotation_between(dir_2, dir_1))
   total_sep_dist = vec_1 + R_total * vec_2
-  is_sect_pos = BB_BB_intersect(aabb_1, aabb_2, R_total, total_sep_dist * (1 - tolerance))
-  is_sect_neg = BB_BB_intersect(aabb_1, aabb_2, R_total, total_sep_dist * (1 + tolerance))
+  update_TT_Cache!(tt, total_sep_dist * (1 - tolerance), R_total)
+  is_sect_pos = BB_BB_intersect(tt, aabb_1, aabb_2)
+  update_TT_Cache!(tt, total_sep_dist * (1 + tolerance), R_total)
+  is_sect_neg = BB_BB_intersect(tt, aabb_1, aabb_2)
   return is_sect_pos, is_sect_neg
 end
 
-function edge_edge_test(dir_1::SVector{3,Float64}, theta_axis::Float64, R_box_2::Rotation{3, Float64})
+function edge_edge_test(tt::TT_Cache, dir_1::SVector{3,Float64}, theta_axis::Float64, R_box_2::Rotation{3, Float64})
   aabb_1 = AABB(zero_three, one_three)
   aabb_2 = AABB(zero_three, one_three)
   vec_1 = dir_1 .* aabb_1.e
-  R_total = Quat(AngleAxis(theta_axis, vec_1[1], vec_1[2], vec_1[3])) * R_box_2
+  R_total = RotMatrix(Quat(AngleAxis(theta_axis, vec_1[1], vec_1[2], vec_1[3])) * R_box_2)
   total_sep_dist = vec_1 * 2
-  is_sect_pos = BB_BB_intersect(aabb_1, aabb_2, R_total, total_sep_dist * (1 - tolerance))
-  is_sect_neg = BB_BB_intersect(aabb_1, aabb_2, R_total, total_sep_dist * (1 + tolerance))
+  update_TT_Cache!(tt, total_sep_dist * (1 - tolerance), R_total)
+  is_sect_pos = BB_BB_intersect(tt, aabb_1, aabb_2)
+  update_TT_Cache!(tt, total_sep_dist * (1 + tolerance), R_total)
+  is_sect_neg = BB_BB_intersect(tt, aabb_1, aabb_2)
   return is_sect_pos, is_sect_neg
 end
 
+tt = TT_Cache()
 box_1_extent = SVector(1.0, 2.0, 3.0)
 box_2_extent = SVector(2.1, 2.2, 2.3)
 one_three    = SVector(1.0, 1.0, 1.0)
@@ -73,9 +78,9 @@ tolerance    = 1.0e-6
     for k_corner = 1:n_corner
       dir_face = outputFaceByNumber(k_face)
       dir_corner = outputCornerByNumber(k_corner)
-      should_be_positive, should_be_negative = face_corner_test(dir_face, dir_corner)
+      should_be_positive, should_be_negative = face_corner_test(tt, dir_face, dir_corner)
       @test should_be_positive && !should_be_negative
-      should_be_positive, should_be_negative = face_corner_test(dir_corner, dir_face)
+      should_be_positive, should_be_negative = face_corner_test(tt, dir_corner, dir_face)
       @test should_be_positive && !should_be_negative
     end
   end
@@ -86,11 +91,11 @@ end
     for theta_axis = rand(15)*2*pi
       for theta_extra = 0:(pi/2):(2*pi)
         dir_edge = outputEdgeByNumber(k_edge_1)
-        should_be_positive, should_be_negative = edge_edge_test(dir_edge, theta_axis, RotX(theta_extra))
+        should_be_positive, should_be_negative = edge_edge_test(tt, dir_edge, theta_axis, RotX(theta_extra))
         @test should_be_positive && !should_be_negative
-        should_be_positive, should_be_negative = edge_edge_test(dir_edge, theta_axis, RotY(theta_extra))
+        should_be_positive, should_be_negative = edge_edge_test(tt, dir_edge, theta_axis, RotY(theta_extra))
         @test should_be_positive && !should_be_negative
-        should_be_positive, should_be_negative = edge_edge_test(dir_edge, theta_axis, RotZ(theta_extra))
+        should_be_positive, should_be_negative = edge_edge_test(tt, dir_edge, theta_axis, RotZ(theta_extra))
         @test should_be_positive && !should_be_negative
       end
     end

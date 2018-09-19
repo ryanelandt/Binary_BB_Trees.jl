@@ -6,16 +6,13 @@ using Rotations
 using LinearAlgebra
 using StaticArrays
 using DataStructures
-using RigidBodyDynamics.Spatial
-
-# import Statistics
 using Statistics
 
 include("util.jl")
 include("box_types.jl")
-include("BB_intersection.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
+include("BB_intersection.jl")
 include("mesh_types.jl")
 include("mesh_for_box.jl")
 include("blob_types.jl")
@@ -27,14 +24,6 @@ export
     # box_types.jl
     boundingBox,
     AABB,
-    OBB,
-    boxArea,
-    boxVolume,
-    boxMinMax,
-    combineAABB,
-
-    # intersection_tests.jl
-    BB_BB_intersect,
 
     # vector_cache.jl
     vectorCache,
@@ -48,12 +37,22 @@ export
     # tree_types.jl
     bin_BB_Tree,
     TT_Cache,
+    update_TT_Cache!,
     is_leaf,
     is_not_leaf,
     treeDepth,
     leafNumber,
     tree_tree_intersect,
     extractData,
+
+    # OBB,
+    boxArea,
+    boxVolume,
+    boxMinMax,
+    combineAABB,
+
+    # intersection_tests.jl
+    BB_BB_intersect,
 
     # mesh_types.jl
     SurfaceVolumeMesh,
@@ -66,6 +65,5 @@ export
     # blob_types.jl
     blob,
     triTetMeshToTreeAABB
-
 
 end # module

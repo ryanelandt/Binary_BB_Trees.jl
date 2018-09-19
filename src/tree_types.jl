@@ -14,12 +14,21 @@ end
 
 mutable struct TT_Cache
     vc::vectorCache{Tuple{Int64, Int64}}
-    q_a_b::Quat{Float64}
     t_a_b::SVector{3,Float64}
+    R_a_b::SMatrix{3,3,Float64,9}
+    abs_R_a_b::SMatrix{3,3,Float64,9}
     function TT_Cache()
         vc = vectorCache{Tuple{Int64,Int64}}()
         return new(vc)
     end
+end
+
+update_TT_Cache!(tt::TT_Cache, trans::SVector{3,Float64}, R::RotMatrix{3,Float64,9}) = update_TT_Cache!(tt, trans, SMatrix{3,3,Float64,9}(R))
+function update_TT_Cache!(tt::TT_Cache, trans::SVector{3,Float64}, R::SMatrix{3,3,Float64,9})
+    tt.t_a_b = trans
+    tt.R_a_b = R
+    tt.abs_R_a_b = abs.(R) .+ 1.0e-14
+    return nothing
 end
 
 is_leaf(tree::bin_BB_Tree)     = (tree.id != -9999)

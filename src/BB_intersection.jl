@@ -1,39 +1,14 @@
-if !@isdefined fB
-    const fA = CartesianFrame3D("A")
-    const fa = CartesianFrame3D("a")
-    const fb = CartesianFrame3D("b")
-    const fB = CartesianFrame3D("B")
-end
-
-function BB_BB_intersect(a::AABB, b::AABB, q_a_b::Quat{Float64}, t_a_b::SVector{3,Float64})
-    return BB_BB_intersect(a, b, RotMatrix{3, Float64}(q_a_b), t_a_b)
-end
-
-function BB_BB_intersect(a::AABB, b::AABB, R_a_b::RotMatrix{3, Float64}, t_a_b::SVector{3,Float64})
-    t = R_a_b * b.c + t_a_b - a.c
-    return BB_BB_intersect(a.e, b.e, R_a_b, t)
-end
-
-function BB_BB_intersect(a::OBB, b::OBB, q_a_b::Quat{Float64}, t_a_b::SVector{3,Float64})
-    x_a_A = Transform3D(fA, fa, a.q, a.c)
-    x_a_b = Transform3D(fb, fa, q_a_b, t_a_b)
-    x_b_B = Transform3D(fB, fb, b.q, b.c)
-    x_A_b = inv(x_a_A) * x_a_b
-    x_A_B = x_A_b * x_b_B
-    R = rotation(x_A_B)
-    t = translation(x_A_B)
-    return BB_BB_intersect(a.e, b.e, R, t)
+function BB_BB_intersect(tt::TT_Cache, a::AABB, b::AABB)
+    t = tt.R_a_b * b.c + tt.t_a_b - a.c
+    return BB_BB_intersect(a.e, b.e, t, tt.R_a_b, tt.abs_R_a_b)
 end
 
 s221(r::SVector{3, Float64}) = SVector{3, Float64}(r[3], r[3], r[2])
 s100(r::SVector{3, Float64}) = SVector{3, Float64}(r[2], r[1], r[1])
 
-function BB_BB_intersect(e_a::SVector{3, Float64}, e_b::SVector{3, Float64}, R_mat::RotMatrix{3, Float64}, t::SVector{3, Float64})
+function BB_BB_intersect(e_a::SVector{3, Float64}, e_b::SVector{3, Float64}, t::SVector{3, Float64}, R::SMatrix{3,3,Float64,9}, abs_R::SMatrix{3,3,Float64,9})
   # This implementation of the OBB_OBB_SAT test is based off of the test described
   # in table 4.1 on page 103 of Ericson's Real-Time Collision Detection.
-
-  R = SMatrix{3,3,Float64,9}(R_mat)
-  abs_R = abs.(R) + 1.0e-14
 
   R0_012 = SVector{3, Float64}(R[1], R[4], R[7])
   R1_012 = SVector{3, Float64}(R[2], R[5], R[8])
