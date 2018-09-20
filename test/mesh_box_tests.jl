@@ -9,8 +9,6 @@ unit_cube_points = basicBoxPoints()
     @test unit_cube_points[6] == SVector{3,Float64}(+1.0, -1.0, +1.0)
     @test unit_cube_points[7] == SVector{3,Float64}(-1.0, +1.0, +1.0)
     @test unit_cube_points[8] == SVector{3,Float64}(+1.0, +1.0, +1.0)
-    # five_tets = Binary_BB_Trees.cubeToFiveTets(unit_cube_points)
-    # @test 8.0 ≈ sum(volume.(five_tets))
 end
 
 @testset "orientation: cube face / triangle" begin
