@@ -20,7 +20,7 @@ function expand!(vc::vectorCache{T}) where {T}  # TODO: make this function more 
 end
 
 function returnNext(vc::vectorCache{T}) where {T}
-    (vc.ind_fill == cache_in.ind_max) && expand!(vc)
+    (vc.ind_fill == vc.ind_max) && expand!(vc)
     vc.ind_fill += 1
     return vc.vec[vc.ind_fill]
 end
@@ -39,3 +39,4 @@ end
 
 Base.isempty(vc::vectorCache{T}) where {T} = (vc.ind_fill == 0)
 Base.length(vc::vectorCache{T}) where {T} = vc.ind_fill
+Base.@propagate_inbounds Base.getindex(vc::vectorCache{T}, i::Int) where {T} = vc.vec[i]

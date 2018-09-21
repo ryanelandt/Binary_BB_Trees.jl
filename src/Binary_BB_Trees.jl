@@ -38,6 +38,7 @@ export
     bin_BB_Tree,
     TT_Cache,
     update_TT_Cache!,
+    length,
     is_leaf,
     is_not_leaf,
     treeDepth,
