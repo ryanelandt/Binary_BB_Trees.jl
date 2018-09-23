@@ -3,16 +3,15 @@ mutable struct vectorCache{T}
     ind_max::Int64
     vec::Vector{T}
     function vectorCache{T}() where {T}
-        n_start = 64
-        v = Vector{T}(undef, n_start)
+        v = Vector{T}(undef, 1)
         if !isassigned(v, 1)
             try
                 T()
             catch
-                error("Type $T does not have a trivial constructor.")
+                error("User supplied type ($T) does not have a trivial constructor.")
             end
         end
-        return new(-9999, n_start, v)
+        return new(-9999, 0, Vector{T}())
     end
 end
 

@@ -1,5 +1,5 @@
 struct TypeWithTrivialConstructor
-    Int64::Int64
+    Int64::Any
     TypeWithTrivialConstructor() = new()
     TypeWithTrivialConstructor(v) = new(v)
 end
