@@ -4,16 +4,25 @@ mutable struct vectorCache{T}
     vec::Vector{T}
     function vectorCache{T}() where {T}
         n_start = 64
-        return new(-9999, n_start, Vector{T}(undef, n_start))
+        v = Vector{T}(undef, n_start)
+        if !isassigned(v, 1)
+            try
+                T()
+            catch
+                error("Type $T does not have a trivial constructor.")
+            end
+        end
+        return new(-9999, n_start, v)
     end
 end
 
 function expand!(vc::vectorCache{T}) where {T}  # TODO: make this function more elegant
     ind_expand = 64
     resize!(vc.vec, vc.ind_max + ind_expand)
-    vec_item = vc.vec[vc.ind_max]
-    for k = 1:ind_expand
-        vc.vec[k + vc.ind_max] = deepcopy(vec_item)
+    if !isassigned(vc.vec, vc.ind_max + 1)
+        for k = 1:ind_expand
+            vc.vec[k + vc.ind_max] = T()
+        end
     end
     vc.ind_max += ind_expand
     return nothing
