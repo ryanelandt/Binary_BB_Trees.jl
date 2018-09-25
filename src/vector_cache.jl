@@ -2,27 +2,28 @@ mutable struct vectorCache{T}
     ind_fill::Int64
     ind_max::Int64
     vec::Vector{T}
-    function vectorCache{T}() where {T}
-        v = Vector{T}(undef, 1)
-        if !isassigned(v, 1)
-            try
-                T()
-            catch
-                error("User supplied type ($T) does not have a trivial constructor.")
-            end
-        end
-        return new(-9999, 0, Vector{T}())
+    empty::T
+    function vectorCache(t::T) where {T}
+        # v = Vector{T}(undef, 1)
+        # if !isassigned(v, 1)
+        #     try
+        #         T()
+        #     catch
+        #         error("User supplied type ($T) does not have a trivial constructor.")
+        #     end
+        # end
+        return new{T}(-9999, 0, Vector{T}(), t)
     end
 end
 
 function expand!(vc::vectorCache{T}) where {T}  # TODO: make this function more elegant
     ind_expand = 64
     resize!(vc.vec, vc.ind_max + ind_expand)
-    if !isassigned(vc.vec, vc.ind_max + 1)
-        for k = 1:ind_expand
-            vc.vec[k + vc.ind_max] = T()
-        end
+    # if !isassigned(vc.vec, vc.ind_max + 1)
+    for k = 1:ind_expand
+        vc.vec[k + vc.ind_max] = deepcopy(vc.empty)
     end
+    # end
     vc.ind_max += ind_expand
     return nothing
 end
