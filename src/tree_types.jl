@@ -13,12 +13,12 @@ mutable struct bin_BB_Tree{T}
 end
 
 mutable struct TT_Cache
-    vc::vectorCache{Tuple{Int64, Int64}}
+    vc::VectorCache{Tuple{Int64, Int64}}
     t_a_b::SVector{3,Float64}
     R_a_b::SMatrix{3,3,Float64,9}
     abs_R_a_b::SMatrix{3,3,Float64,9}
     function TT_Cache()
-        vc = vectorCache((-9999,-9999))
+        vc = VectorCache((-9999,-9999))
         return new(vc)
     end
 end
