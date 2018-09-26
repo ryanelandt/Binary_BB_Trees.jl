@@ -26,7 +26,7 @@ export
     AABB,
 
     # vector_cache.jl
-    vectorCache,
+    VectorCache,
     expand!,
     returnNext,
     addCacheItem!,
