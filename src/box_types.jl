@@ -6,13 +6,6 @@ struct AABB <: boundingBox
     AABB(c, e) = new(c, e)
 end
 
-# struct OBB <: boundingBox
-#     c::SVector{3,Float64}
-#     e::SVector{3,Float64}
-#     q::Quat{Float64}
-#     OBB(c, e, q) = new(c, e, q)
-# end
-
 boxArea(a::AABB) = 2 * dot(a.e, SVector{3,Float64}(a.e[2], a.e[3], a.e[1]))
 boxVolume(a::AABB) = prod(a.e)
 boxMinMax(a::AABB) = a.c - a.e, a.c + a.e

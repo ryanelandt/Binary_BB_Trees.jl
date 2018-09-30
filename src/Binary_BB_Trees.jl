@@ -55,8 +55,8 @@ export
     # intersection_tests.jl
     BB_BB_intersect,
 
-    # mesh_types.jl
-    SurfaceVolumeMesh,
+    # # mesh_types.jl
+    # SurfaceVolumeMesh,
 
     # mesh_for_box.jl
     outputBoxVolMesh,

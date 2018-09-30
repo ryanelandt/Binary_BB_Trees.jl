@@ -120,10 +120,9 @@ function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Ve
     pq_delta_cost = createBlobPriorityQueue(dict_blob)
     bottomUp!(dict_blob, pq_delta_cost)
     all_tree = collect(values(dict_blob))
-    # @assert(length(all_tree) == 1, "creation of trees for noncontinuous meshs not currently supported")
     if (length(all_tree) != 1)
         @warn "mesh is noncontinuous"
-        return all_tree
+        return all_tree  # TODO do something more with this output
     else
         return all_tree[1].bin_BB_Tree
     end
