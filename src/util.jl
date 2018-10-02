@@ -35,3 +35,9 @@ function sortEdgeFace(v::SVector{4,Int64}, k::Int64)
     i1, i2 = minmax(i1, i2)  # --> i1 and i2 are sorted
     return SVector{3,Int64}(i1, i2, i3)
 end
+
+function extract_HomogenousMesh_face_vertices(hm::HomogenousMesh)
+    point = [SVector{3,Float64}(k) for k = hm.vertices]
+    vec_tri = [SVector{3,Int64}(k) for k = hm.faces]
+    return point, vec_tri
+end

@@ -15,13 +15,14 @@ include("box_types.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
 include("BB_intersection.jl")
-include("mesh_types.jl")
+# include("mesh_types.jl")
 include("mesh_for_box.jl")
 include("blob_types.jl")
 
 export
     # util.jl
     svSvToAABB,
+    extract_HomogenousMesh_face_vertices,
 
     # box_types.jl
     boundingBox,
