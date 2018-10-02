@@ -2,11 +2,13 @@ __precompile__(true)
 
 module Binary_BB_Trees
 
+using GeometryTypes: HomogenousMesh, Face, Point
 using Rotations
 using LinearAlgebra
 using StaticArrays
 using DataStructures
 using Statistics
+
 
 include("util.jl")
 include("box_types.jl")
