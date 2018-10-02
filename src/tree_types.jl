@@ -40,6 +40,7 @@ is_not_leaf(tree::bin_BB_Tree) = (tree.id == -9999)
 
 treeDepth(t::bin_BB_Tree{AABB}) = leafNumberDepth(t, 0, 0)[1]
 leafNumber(t::bin_BB_Tree{AABB}) = leafNumberDepth(t, 0, 0)[2]
+
 function leafNumberDepth(t::bin_BB_Tree{AABB}, k_depth::Int64, k_leaf::Int64)
     if is_leaf(t)
         k_leaf = 1

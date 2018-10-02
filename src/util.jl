@@ -16,6 +16,18 @@ function svSvToAABB(vert::SVector{N, SVector{3,Float64}}) where {N}
     return AABB(center, extent)
 end
 
+function find_vector_point_AABB(point::Vector{SVector{3,Float64}})
+    min_val = point[1] * 1
+    max_val = point[2] * 2
+    for k = 1:length(point)
+        point_k = point[k]
+        min_val = min.(min_val, point_k)
+        max_val = max.(max_val, point_k)
+    end
+    center, extent = minMaxToCenterExtent(min_val, max_val)
+    return AABB(center, extent)
+end
+
 function sortEdgeFace(v::SVector{3,Int64}, k::Int64)
     three = 3
     (1 <= k <= three) || error("a triangle has three sides")
