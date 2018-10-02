@@ -127,3 +127,9 @@ function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Ve
         return all_tree[1].bin_BB_Tree
     end
 end
+
+function triTetMeshToTreeAABB(hm::HomogenousMesh)
+    point = [SVector{3,Float64}(k) for k = hm.vertices]
+    vec_tri_tet = [SVector{3,Int64}(k) for k = hm.faces]
+    return triTetMeshToTreeAABB(point, vec_tri_tet)
+end
