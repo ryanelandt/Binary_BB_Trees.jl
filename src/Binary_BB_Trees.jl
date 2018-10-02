@@ -24,6 +24,7 @@ export
     svSvToAABB,
     extract_HomogenousMesh_face_vertices,
     find_vector_point_AABB,
+    scale_HomogenousMesh!,
 
     # box_types.jl
     boundingBox,

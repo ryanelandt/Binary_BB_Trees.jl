@@ -53,3 +53,10 @@ function extract_HomogenousMesh_face_vertices(hm::HomogenousMesh)
     vec_tri = [SVector{3,Int64}(k) for k = hm.faces]
     return point, vec_tri
 end
+
+function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::Float64)
+    for k = 1:length(mesh.vertices)
+        mesh.vertices[k] *= scale
+    end
+    return nothing
+end
