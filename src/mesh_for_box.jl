@@ -73,10 +73,15 @@ function twoTriangles!(v_tri, i_in)
     return nothing
 end
 
-function outputBoxVolMesh(rad_box, foam_depth, center)
-    all(0.01 .<= foam_depth .<= 1.0) || error("foam depth needs to be between 0.01 and 1.0 of box radius")
-    rad_inner = rad_box .* (1 .- foam_depth)
-    points_16 = vcat(sizeCenterBoxPoints(rad_box, center), sizeCenterBoxPoints(rad_inner, center))
+function outputBoxVolMesh(;center::SVector{3,Float64}=SVector{3,Float64}(0,0,0),
+                          fill_frac::SVector{3,Float64}=SVector{3,Float64}(1,1,1),
+                          rad::SVector{3,Float64}=SVector{3,Float64}(1,1,1))
+
+    # (rad == nothing) && error("rad cannot be nothing")
+
+    all(0.01 .<= fill_frac .<= 1.0) || error("foam depth needs to be between 0.01 and 1.0 of box radius")
+    rad_inner = rad .* (1 .- fill_frac)
+    points_16 = vcat(sizeCenterBoxPoints(rad, center), sizeCenterBoxPoints(rad_inner, center))
     dict_points = determineUniquePoints(points_16)
     vec_nondegenerate_tet = Vector{SVector{4,Int64}}()
     for ind_k = outputDividedCube()
