@@ -77,8 +77,6 @@ function outputBoxVolMesh(;center::SVector{3,Float64}=SVector{3,Float64}(0,0,0),
                           fill_frac::SVector{3,Float64}=SVector{3,Float64}(1,1,1),
                           rad::SVector{3,Float64}=SVector{3,Float64}(1,1,1))
 
-    # (rad == nothing) && error("rad cannot be nothing")
-
     all(0.01 .<= fill_frac .<= 1.0) || error("foam depth needs to be between 0.01 and 1.0 of box radius")
     rad_inner = rad .* (1 .- fill_frac)
     points_16 = vcat(sizeCenterBoxPoints(rad, center), sizeCenterBoxPoints(rad_inner, center))
@@ -96,5 +94,4 @@ function outputBoxVolMesh(;center::SVector{3,Float64}=SVector{3,Float64}(0,0,0),
 
     mesh_box = HomogenousMesh(vertices=points_12, faces=outputBoxTriInd())
     return mesh_box, vec_nondegenerate_tet, strain
-    # return points_12, outputBoxTriInd(), vec_nondegenerate_tet, strain
 end
