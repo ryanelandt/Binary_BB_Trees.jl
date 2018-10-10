@@ -55,7 +55,7 @@ function blobCost(aabb::AABB, n_below::Int64, scale::Float64)
     cA = 1.0
     cV = 1.0
     V = 0.0
-    V += n_below * log(2 * n_below)
+    V += n_below * log2(2 * n_below)
     V += cA * boxArea(aabb) / (scale^2)
     V += cV * boxVolume(aabb) / (scale^3)
     return V  # PriorityQueue returns lowest first
@@ -115,6 +115,8 @@ function bottomUp!(dict_blob, pq_delta_cost, scale)
 end
 
 function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}) where {N}
+    (N == 3) || (N == 4) || error("N is $N. N should be 3 for triangle mesh or 4 for tetrahedral mesh")
+
     final_AABB = find_vector_point_AABB(point)
     scale = sum(final_AABB.e) / 3
 
@@ -131,6 +133,7 @@ function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Ve
 end
 
 function triTetMeshToTreeAABB(hm::HomogenousMesh)
-    point, vec_tri = extract_HomogenousMesh_face_vertices(hm)
+    point = get_h_mesh_vertices(hm)
+    vec_tri = get_h_mesh_faces(hm)
     return triTetMeshToTreeAABB(point, vec_tri)
 end
