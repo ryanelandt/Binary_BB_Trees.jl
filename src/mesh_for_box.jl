@@ -93,5 +93,8 @@ function outputBoxVolMesh(;center::SVector{3,Float64}=SVector{3,Float64}(0,0,0),
         points_12[k] = key_k
     end
     strain = [ifelse(k <= 8, 0.0, -1.0) for k = 1:length(points_12)]
-    return points_12, outputBoxTriInd(), vec_nondegenerate_tet, strain
+
+    mesh_box = HomogenousMesh(vertices=points_12, faces=outputBoxTriInd())
+    return mesh_box, vec_nondegenerate_tet, strain
+    # return points_12, outputBoxTriInd(), vec_nondegenerate_tet, strain
 end
