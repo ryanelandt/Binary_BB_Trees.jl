@@ -17,7 +17,7 @@ Assuming that the loaded mesh is called `mesh` one creates an AABB tree by calli
 tree_mesh = triTetMeshToTreeAABB(mesh)
 ```
 
-Tetrahedral meshes can be created by passing a a vector of points and vector of indices to `triTetMeshToTreeAABB` (see below).
+Tetrahedral meshes can be created by passing a vector of points and vector of indices to `triTetMeshToTreeAABB` (see below).
 ```Julia
 function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}) where {N}
 ```
@@ -45,6 +45,7 @@ Heuristics that govern BHV creation generally try to do some combination of the 
 1. balance tree,
 2. minimize surface area and
 3. minimize volume.
+
 The bottom up algorithm implemented in this module uses a heuristic that considers these three things.
 The heuristic in invariant to translation and scaling by a constant.
 
@@ -56,4 +57,4 @@ The cost of each box is tabulated according to a heuristic that assigns cost of 
 Each box corresponds to a triangle/tetrahedron.
 The algorithm calculates the marginal cost of combining boxes that belong to neighbors (i.e. triangles that touch each other).
 If the `n * log2(2*n)` term were not present, there would be no penalty for creating an unbalanced tree.
-The algorithm merges the neighbors that increase the sum of all costs the least.
+The algorithm merges neighbors one at a time in the manner that increases the sum of all costs the least until either a single box remains, or no possible merges are left (mesh is not connected).
