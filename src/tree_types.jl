@@ -80,13 +80,13 @@ function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree{T}, tree_2::
             end
         else
             if is_leaf_2
+                tree_tree_intersect(ttCache, tree_1.node_1, tree_2)
+                tree_tree_intersect(ttCache, tree_1.node_2, tree_2)
+            else                
                 tree_tree_intersect(ttCache, tree_1.node_1, tree_2.node_1)
                 tree_tree_intersect(ttCache, tree_1.node_2, tree_2.node_1)
                 tree_tree_intersect(ttCache, tree_1.node_1, tree_2.node_2)
                 tree_tree_intersect(ttCache, tree_1.node_2, tree_2.node_2)
-            else
-                tree_tree_intersect(ttCache, tree_1.node_1, tree_2)
-                tree_tree_intersect(ttCache, tree_1.node_2, tree_2)
             end
         end
     end
