@@ -15,7 +15,6 @@ include("box_types.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
 include("BB_intersection.jl")
-# include("mesh_types.jl")
 include("mesh_for_box.jl")
 include("blob_types.jl")
 
@@ -64,13 +63,14 @@ export
     # intersection_tests.jl
     BB_BB_intersect,
 
-    # # mesh_types.jl
-    # SurfaceVolumeMesh,
-
-    # mesh_for_box.jl
-    outputBoxVolMesh,
-    outputOrientedBoxFaces,
-    basicBoxPoints,
+    # # mesh_for_box.jl
+    # outputBoxVolMesh,
+    # outputOrientedBoxFaces,
+    # basicBoxPoints,
+    # outputDividedCube,
+    # determineUniquePoints,
+    # sizeCenterBoxPoints,
+    # outputBoxTriInd,
 
     # blob_types.jl
     blob,
