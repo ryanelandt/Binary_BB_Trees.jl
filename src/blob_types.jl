@@ -48,6 +48,11 @@ function createSharedEdgeFaceDict(vec_tri_tet::Vector{SVector{N,Int64}}) where {
             end
         end
     end
+    if N == 3  # confirm that every edge has a partner
+        for (key_k, val_k) = dict_vert_pair
+            any(val_k .== -9999) && error("edge $key_k is connected to a single triangle $(val_k[1])")
+        end
+    end
     return dict_vert_pair
 end
 
