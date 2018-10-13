@@ -68,3 +68,11 @@ function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::Float64)
     end
     return nothing
 end
+
+function transform_HomogenousMesh!(mesh::HomogenousMesh; rot::Rotation=one(Quat{Float64}), trans::SVector{3,Float64}=zeros(SVector{3,Float64}))
+    R = RotMatrix(rot)
+    for k = 1:length(mesh.vertices)
+        mesh.vertices[k] = R * mesh.vertices[k] + trans
+    end
+    return nothing
+end
