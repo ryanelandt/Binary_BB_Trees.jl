@@ -63,8 +63,11 @@ get_h_mesh_vertices_32(hm::HomogenousMesh) = [Point{3,Float32}(k) for k = hm.ver
 get_h_mesh_faces_32(hm::HomogenousMesh) = [Face{3,Int32}(k) for k = hm.faces]
 
 function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::Float64)
+    return scale_HomogenousMesh!(mesh, scale * ones(SVector{3,Float64}))
+end
+function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::SVector{3,Float64})
     for k = 1:length(mesh.vertices)
-        mesh.vertices[k] *= scale
+        mesh.vertices[k] = mesh.vertices[k] .* scale
     end
     return nothing
 end
