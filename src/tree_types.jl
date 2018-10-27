@@ -18,7 +18,7 @@ mutable struct TT_Cache
     R_a_b::SMatrix{3,3,Float64,9}
     abs_R_a_b::SMatrix{3,3,Float64,9}
     function TT_Cache()
-        vc = VectorCache((-9999,-9999))
+        vc = VectorCache{NTuple{2,Int64}}()  # ((-9999,-9999))
         return new(vc)
     end
 end
@@ -82,7 +82,7 @@ function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree{T}, tree_2::
             if is_leaf_2
                 tree_tree_intersect(ttCache, tree_1.node_1, tree_2)
                 tree_tree_intersect(ttCache, tree_1.node_2, tree_2)
-            else                
+            else
                 tree_tree_intersect(ttCache, tree_1.node_1, tree_2.node_1)
                 tree_tree_intersect(ttCache, tree_1.node_2, tree_2.node_1)
                 tree_tree_intersect(ttCache, tree_1.node_1, tree_2.node_2)

@@ -2,16 +2,18 @@ mutable struct VectorCache{T}
     ind_fill::Int64
     ind_max::Int64
     vec::Vector{T}
-    empty::T
-    VectorCache(t::T) where {T} = new{T}(-9999, 0, Vector{T}(), t)
+    function VectorCache{T}() where {T}
+        isbitstype(T) || error("This cache requires an isbits type.")
+        new{T}(-9999, 0, Vector{T}())
+    end
 end
 
 function expand!(vc::VectorCache{T}) where {T}  # TODO: make this function more elegant
     ind_expand = 64
     resize!(vc.vec, vc.ind_max + ind_expand)
-    for k = 1:ind_expand
-        vc.vec[k + vc.ind_max] = deepcopy(vc.empty)
-    end
+    # for k = 1:ind_expand
+        # vc.vec[k + vc.ind_max] = deepcopy(vc.empty)
+    # end
     vc.ind_max += ind_expand
     return nothing
 end
