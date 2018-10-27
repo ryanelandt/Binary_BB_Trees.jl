@@ -1,5 +1,5 @@
 @testset "VectorCacheInt64" begin
-    vc = VectorCache(-1)  # arbitrary number for fill new entries with
+    vc = VectorCache{Int64}()
     @test length(vc) == -9999
     empty!(vc)
     @test isempty(vc)
