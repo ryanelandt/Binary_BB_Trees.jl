@@ -11,6 +11,8 @@ boxVolume(a::AABB) = prod(a.e)
 boxMinMax(a::AABB) = a.c - a.e, a.c + a.e
 
 function combineAABB(a::AABB, b::AABB)
+    # TODO: put in utility
+    
     min_1, max_1 = boxMinMax(a)
     min_2, max_2 = boxMinMax(b)
     return svSvToAABB(SVector{4,SVector{3,Float64}}(min_1, max_1, min_2, max_2))
