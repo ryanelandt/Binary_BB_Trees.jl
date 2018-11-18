@@ -11,19 +11,25 @@ struct blob
 end
 
 function createBlobDictionary(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}, scale::Float64) where {N}
-    vec_neighbor = extractTriTetNeighborInformation(vec_tri_tet)
+    vec_neighbor, is_abort = extractTriTetNeighborInformation(vec_tri_tet)
     dict_blob = Dict{Int64,blob}()
+    if is_abort
+        return dict_blob, true
+    end
     for (k, ind_k) = enumerate(vec_tri_tet)
         aabb_k = svSvToAABB(point[ind_k])
         tree_k = bin_BB_Tree{AABB}(k, aabb_k)
         dict_blob[k] = blob(k, 1, vec_neighbor[k], tree_k, scale)
     end
-    return dict_blob
+    return dict_blob, false
 end
 
 function extractTriTetNeighborInformation(vec_tri_tet::Vector{SVector{N,Int64}}) where {N}
-    dict_vert_pair = createSharedEdgeFaceDict(vec_tri_tet)
+    dict_vert_pair, is_abort = createSharedEdgeFaceDict(vec_tri_tet)
     vec_neighbor = [Vector{Int64}() for _ = vec_tri_tet]
+    if is_abort
+        return vec_neighbor, true
+    end
     for key_k = keys(dict_vert_pair)
         i_pair = dict_vert_pair[key_k]
         if (N == 3) || all(i_pair .!= -9999)  # tets will not have a partner if on the boundary
@@ -31,7 +37,7 @@ function extractTriTetNeighborInformation(vec_tri_tet::Vector{SVector{N,Int64}})
             push!(vec_neighbor[i_pair[2]], i_pair[1])
         end
     end
-    return vec_neighbor
+    return vec_neighbor, false
 end
 
 function createSharedEdgeFaceDict(vec_tri_tet::Vector{SVector{N,Int64}}) where {N}
@@ -50,10 +56,13 @@ function createSharedEdgeFaceDict(vec_tri_tet::Vector{SVector{N,Int64}}) where {
     end
     if N == 3  # confirm that every edge has a partner
         for (key_k, val_k) = dict_vert_pair
-            any(val_k .== -9999) && error("edge $key_k is connected to a single triangle $(val_k[1])")
+            if any(val_k .== -9999)
+                #  && error("edge $key_k is connected to a single triangle $(val_k[1])")
+                return dict_vert_pair, true
+            end
         end
     end
-    return dict_vert_pair
+    return dict_vert_pair, false
 end
 
 function blobCost(aabb::AABB, n_below::Int64, scale::Float64)
@@ -125,13 +134,18 @@ function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Ve
     final_AABB = find_vector_point_AABB(point)
     scale = sum(final_AABB.e) / 3
 
-    dict_blob = createBlobDictionary(point, vec_tri_tet, scale)
+    dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)
+    if is_abort
+        return top_down(point, vec_tri_tet)
+    end
+
     pq_delta_cost = createBlobPriorityQueue(dict_blob, scale)
     bottomUp!(dict_blob, pq_delta_cost, scale)
     all_tree = collect(values(dict_blob))
     if (length(all_tree) != 1)
         @warn "mesh is noncontinuous"
-        return all_tree  # TODO do something more with this output
+        vec_bin_BB_Tree = [all_tree[k].bin_BB_Tree for k = 1:length(all_tree)]
+        return recursive_top_down(vec_bin_BB_Tree)
     else
         return all_tree[1].bin_BB_Tree
     end

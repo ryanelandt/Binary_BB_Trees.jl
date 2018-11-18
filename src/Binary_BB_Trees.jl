@@ -9,14 +9,14 @@ using StaticArrays
 using DataStructures
 using Statistics
 
-
 include("util.jl")
 include("box_types.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
 include("BB_intersection.jl")
-include("mesh_for_box.jl")
 include("blob_types.jl")
+include("top_down.jl")
+
 
 export
     # util.jl
@@ -64,17 +64,10 @@ export
     # intersection_tests.jl
     BB_BB_intersect,
 
-    # # mesh_for_box.jl
-    # outputBoxVolMesh,
-    # outputOrientedBoxFaces,
-    # basicBoxPoints,
-    # outputDividedCube,
-    # determineUniquePoints,
-    # sizeCenterBoxPoints,
-    # outputBoxTriInd,
-
     # blob_types.jl
     blob,
     triTetMeshToTreeAABB
+
+    # top_down.jl
 
 end # module
