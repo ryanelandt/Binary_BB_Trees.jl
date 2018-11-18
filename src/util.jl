@@ -16,14 +16,43 @@ function svSvToAABB(vert::SVector{N, SVector{3,Float64}}) where {N}
     return AABB(center, extent)
 end
 
-function find_vector_point_AABB(point::Vector{SVector{3,Float64}})
-    min_val = point[1] * 1
-    max_val = point[2] * 2
+function calc_min_max(point::Vector{SVector{3,T}}) where {T}
+    min_val = SVector{3,Float64}(+Inf, +Inf, +Inf)
+    max_val = SVector{3,Float64}(-Inf, -Inf, -Inf)
     for k = 1:length(point)
         point_k = point[k]
         min_val = min.(min_val, point_k)
         max_val = max.(max_val, point_k)
     end
+    return min_val, max_val
+end
+
+function calc_min_max(hm::HomogenousMesh)
+    point, _ = extract_HomogenousMesh_face_vertices(hm)
+    return calc_min_max(point)
+end
+
+function calc_min_max(sv::SVector{N,Float64}) where {N}
+    min_ = findMinSVSV(sv)
+    max_ = findMaxSVSV(sv)
+    return min_, max_
+end
+
+function calc_aabb(arg_in)
+    min_val, max_val = calc_min_max(arg_in)
+    center, extent = minMaxToCenterExtent(min_val, max_val)
+    return AABB(center, extent)
+end
+
+function find_vector_point_AABB(point::Vector{SVector{3,Float64}})
+    # min_val = point[1] * 1
+    # max_val = point[2] * 2
+    # for k = 1:length(point)
+    #     point_k = point[k]
+    #     min_val = min.(min_val, point_k)
+    #     max_val = max.(max_val, point_k)
+    # end
+    min_val, max_val = calc_min_max(point)
     center, extent = minMaxToCenterExtent(min_val, max_val)
     return AABB(center, extent)
 end

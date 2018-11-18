@@ -21,6 +21,8 @@ include("top_down.jl")
 export
     # util.jl
     svSvToAABB,
+    calc_min_max,
+    calc_aabb,
     extract_HomogenousMesh_face_vertices,
     find_vector_point_AABB,
     get_h_mesh_vertices,
