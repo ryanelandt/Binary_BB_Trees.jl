@@ -3,8 +3,8 @@ struct blob
     n_below::Int64
     cost::Float64
     neighbor::Set{Int64}
-    bin_BB_Tree::bin_BB_Tree{AABB}
-    function blob(k::Int64, n_below::Int64, neighbor_in, bb_tree::bin_BB_Tree{AABB}, scale::Float64)
+    bin_BB_Tree::bin_BB_Tree
+    function blob(k::Int64, n_below::Int64, neighbor_in, bb_tree::bin_BB_Tree, scale::Float64)
         cost = blobCost(bb_tree.box, n_below, scale)
         return new(k, n_below, cost, Set{Int64}(neighbor_in), bb_tree)
     end
@@ -18,7 +18,7 @@ function createBlobDictionary(point::Vector{SVector{3,Float64}}, vec_tri_tet::Ve
     end
     for (k, ind_k) = enumerate(vec_tri_tet)
         aabb_k = svSvToAABB(point[ind_k])
-        tree_k = bin_BB_Tree{AABB}(k, aabb_k)
+        tree_k = bin_BB_Tree(k, aabb_k)
         dict_blob[k] = blob(k, 1, vec_neighbor[k], tree_k, scale)
     end
     return dict_blob, false
@@ -79,7 +79,7 @@ function doCombineBlob(dict_blob, a::blob, b::blob, k_next::Int64, scale::Float6
     delete!(a.neighbor, b.k)
     delete!(b.neighbor, a.k)
     c_neighbor = union(a.neighbor, b.neighbor)  # add to neighbor_c
-    tree_c = bin_BB_Tree{AABB}(a.bin_BB_Tree, b.bin_BB_Tree)
+    tree_c = bin_BB_Tree(a.bin_BB_Tree, b.bin_BB_Tree)
     n_below_c = a.n_below + b.n_below
     blob_c = dict_blob[k_next] = blob(k_next, n_below_c, c_neighbor, tree_c, scale)
     return k_next + 1, blob_c

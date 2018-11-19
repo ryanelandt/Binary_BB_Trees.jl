@@ -33,7 +33,7 @@ export
     transform_HomogenousMesh!,
 
     # box_types.jl
-    boundingBox,
+    # boundingBox,
     AABB,
 
     # vector_cache.jl

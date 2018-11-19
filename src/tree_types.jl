@@ -1,12 +1,12 @@
-mutable struct bin_BB_Tree{T}
+mutable struct bin_BB_Tree # {T}
     id::Int64
-    box::T
-    node_1::bin_BB_Tree{T}
-    node_2::bin_BB_Tree{T}
-    function bin_BB_Tree{T}(id::Int64, BB::T) where {T <: boundingBox}
+    box::AABB
+    node_1::bin_BB_Tree  # {T}
+    node_2::bin_BB_Tree  # {T}
+    function bin_BB_Tree(id::Int64, BB::AABB) # where {T <: boundingBox}
         return new(id, BB)
     end
-    function bin_BB_Tree{AABB}(node_1::bin_BB_Tree{AABB}, node_2::bin_BB_Tree{AABB})
+    function bin_BB_Tree(node_1::bin_BB_Tree, node_2::bin_BB_Tree)
         aabb = combineAABB(node_1.box, node_2.box)
         return new(-9999, aabb, node_1, node_2)
     end
@@ -38,10 +38,10 @@ Base.@propagate_inbounds Base.getindex(tt::TT_Cache, i::Int) = tt.vc[i]
 is_leaf(tree::bin_BB_Tree)     = (tree.id != -9999)
 is_not_leaf(tree::bin_BB_Tree) = (tree.id == -9999)
 
-treeDepth(t::bin_BB_Tree{AABB}) = leafNumberDepth(t, 0, 0)[1]
-leafNumber(t::bin_BB_Tree{AABB}) = leafNumberDepth(t, 0, 0)[2]
+treeDepth(t::bin_BB_Tree) = leafNumberDepth(t, 0, 0)[1]
+leafNumber(t::bin_BB_Tree) = leafNumberDepth(t, 0, 0)[2]
 
-function leafNumberDepth(t::bin_BB_Tree{AABB}, k_depth::Int64, k_leaf::Int64)
+function leafNumberDepth(t::bin_BB_Tree, k_depth::Int64, k_leaf::Int64)
     if is_leaf(t)
         k_leaf = 1
     else is_not_leaf(t)
@@ -67,7 +67,7 @@ function extractData(tree::bin_BB_Tree)
     return v
 end
 
-function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree{T}, tree_2::bin_BB_Tree{T}) where {T <: boundingBox}
+function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree, tree_2::bin_BB_Tree) # where {T <: boundingBox}
     if BB_BB_intersect(ttCache, tree_1.box, tree_2.box)
         is_leaf_1 = is_leaf(tree_1)
         is_leaf_2 = is_leaf(tree_2)
