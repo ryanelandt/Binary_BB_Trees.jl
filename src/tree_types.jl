@@ -90,5 +90,5 @@ function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree, tree_2::bin
             end
         end
     end
-    return nothing
+    # return nothing
 end

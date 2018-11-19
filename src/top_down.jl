@@ -24,8 +24,8 @@ function recursive_top_down(bb_aabb::Vector{bin_BB_Tree})
     final_AABB = bin_BB_Tree_Bound(bb_aabb)
     _, mi_ = findmax(final_AABB.e)
 
-    all_e = [bb_aabb[k].box.e[mi_] for k = 1:n]
-    s_perm = sortperm(all_e)
+    all_c = [bb_aabb[k].box.c[mi_] for k = 1:n]
+    s_perm = sortperm(all_c)
     n_mid = Int64(ceil(n / 2))
     i_pos = s_perm[1:(n_mid - 1)]
     i_neg = s_perm[n_mid:n]
