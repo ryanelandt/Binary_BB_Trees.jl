@@ -63,6 +63,12 @@ function calc_aabb(arg_in)
     return AABB(center, extent)
 end
 
+function calc_aabb(a::SVector{3,Float64}, b::SVector{3,Float64})
+    min_val, max_val = calc_min_max(a, b)
+    center, extent = minMaxToCenterExtent(min_val, max_val)
+    return AABB(center, extent)
+end
+
 function sortEdgeFace(v::SVector{3,Int64}, k::Int64)
     three = 3
     (1 <= k <= three) || error("a triangle has three sides")
