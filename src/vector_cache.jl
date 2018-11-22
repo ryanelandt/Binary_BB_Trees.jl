@@ -12,10 +12,6 @@ end
 function expand!(vc::VectorCache{T}) where {T}  # TODO: make this function more elegant
     vc.ind_max += vc.ind_max
     resize!(vc.vec, vc.ind_max)
-    # for k = 1:ind_expand
-        # vc.vec[k + vc.ind_max] = deepcopy(vc.empty)
-    # end
-    # vc.ind_max += ind_expand
     return nothing
 end
 

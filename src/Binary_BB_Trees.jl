@@ -9,8 +9,8 @@ using StaticArrays
 using DataStructures
 using Statistics
 
-include("util.jl")
 include("box_types.jl")
+include("util.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
 include("BB_intersection.jl")
@@ -19,22 +19,23 @@ include("top_down.jl")
 
 
 export
+    # box_types.jl
+    AABB,
+    boxArea,
+    boxVolume,
+    combineAABB,
+
     # util.jl
     svSvToAABB,
     calc_min_max,
     calc_aabb,
     extract_HomogenousMesh_face_vertices,
-    find_vector_point_AABB,
     get_h_mesh_vertices,
     get_h_mesh_faces,
     get_h_mesh_vertices_32,
     get_h_mesh_faces_32,
     scale_HomogenousMesh!,
     transform_HomogenousMesh!,
-
-    # box_types.jl
-    # boundingBox,
-    AABB,
 
     # vector_cache.jl
     VectorCache,
@@ -56,12 +57,6 @@ export
     leafNumber,
     tree_tree_intersect,
     extractData,
-
-    # OBB,
-    boxArea,
-    boxVolume,
-    boxMinMax,
-    combineAABB,
 
     # intersection_tests.jl
     BB_BB_intersect,

@@ -131,7 +131,7 @@ end
 function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}) where {N}
     (N == 3) || (N == 4) || error("N is $N. N should be 3 for triangle mesh or 4 for tetrahedral mesh")
 
-    final_AABB = find_vector_point_AABB(point)
+    final_AABB = calc_aabb(point)
     scale = sum(final_AABB.e) / 3
 
     dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)

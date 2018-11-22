@@ -1,9 +1,9 @@
-mutable struct bin_BB_Tree # {T}
+mutable struct bin_BB_Tree
     id::Int64
     box::AABB
-    node_1::bin_BB_Tree  # {T}
-    node_2::bin_BB_Tree  # {T}
-    function bin_BB_Tree(id::Int64, BB::AABB) # where {T <: boundingBox}
+    node_1::bin_BB_Tree
+    node_2::bin_BB_Tree
+    function bin_BB_Tree(id::Int64, BB::AABB)
         return new(id, BB)
     end
     function bin_BB_Tree(node_1::bin_BB_Tree, node_2::bin_BB_Tree)
@@ -18,7 +18,7 @@ mutable struct TT_Cache
     R_a_b::SMatrix{3,3,Float64,9}
     abs_R_a_b::SMatrix{3,3,Float64,9}
     function TT_Cache()
-        vc = VectorCache{NTuple{2,Int64}}()  # ((-9999,-9999))
+        vc = VectorCache{NTuple{2,Int64}}()
         return new(vc)
     end
 end
@@ -67,7 +67,7 @@ function extractData(tree::bin_BB_Tree)
     return v
 end
 
-function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree, tree_2::bin_BB_Tree) # where {T <: boundingBox}
+function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree, tree_2::bin_BB_Tree)
     if BB_BB_intersect(ttCache, tree_1.box, tree_2.box)
         is_leaf_1 = is_leaf(tree_1)
         is_leaf_2 = is_leaf(tree_2)
@@ -90,5 +90,4 @@ function tree_tree_intersect(ttCache::TT_Cache, tree_1::bin_BB_Tree, tree_2::bin
             end
         end
     end
-    # return nothing
 end

@@ -15,7 +15,6 @@ function bin_BB_Tree_Bound(bb_aabb)
     return box
 end
 
-# function recursive_top_down(bb_aabb::Vector{bin_BB_Tree{AABB}})
 function recursive_top_down(bb_aabb::Vector{bin_BB_Tree})
     n = length(bb_aabb)
     (n == 1) && (return bb_aabb[1])
@@ -34,6 +33,5 @@ function recursive_top_down(bb_aabb::Vector{bin_BB_Tree})
     bb_aabb_2 = bb_aabb[i_neg]
     tree_1 = recursive_top_down(bb_aabb_1)
     tree_2 = recursive_top_down(bb_aabb_2)
-    # return bin_BB_Tree{AABB}(tree_1, tree_2)
     return bin_BB_Tree(tree_1, tree_2)
 end
