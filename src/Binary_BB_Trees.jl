@@ -8,6 +8,7 @@ using LinearAlgebra
 using StaticArrays
 using DataStructures
 using Statistics
+using NearestNeighbors
 
 include("box_types.jl")
 include("util.jl")
@@ -36,6 +37,7 @@ export
     get_h_mesh_faces_32,
     scale_HomogenousMesh!,
     transform_HomogenousMesh!,
+    repair_mesh,
 
     # vector_cache.jl
     VectorCache,

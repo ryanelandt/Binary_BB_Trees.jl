@@ -120,3 +120,37 @@ function transform_HomogenousMesh!(mesh::HomogenousMesh; rot::Rotation=one(Quat{
     end
     return nothing
 end
+
+function repair_mesh(mesh_leaky::HomogenousMesh)
+    # Currently this function only detects duplicate points in defective meshes.
+
+    function shortest_side(abc::SVector{3,SVector{3,Float64}})
+        a, b, c = abc
+        return min(norm(a - b), norm(b - c), norm(c - a))
+    end
+
+    # All points closer to each other than hald a side length are duplicates
+    ind = get_h_mesh_faces(mesh_leaky)
+    point = get_h_mesh_vertices(mesh_leaky)
+    balltree = BallTree(point; reorder = false)
+    idxs, dists = knn(balltree, point, 20, true)
+    min_side_length = minimum([shortest_side(point[k]) for k = ind])
+    idxs = inrange(balltree, point, min_side_length * 0.499)
+
+    # Determine mapping of old indices to new indices
+    n_points = length(point)
+    i_orig_prime = collect(1:n_points)
+    for k = 1:n_points
+        k_current = i_orig_prime[k]
+        i_orig_prime[idxs[k]] .= k_current
+    end
+    unique_i_orig_prime = unique(i_orig_prime)
+    i_prime_new = zeros(Int64, n_points) .- 9999
+    i_prime_new[unique_i_orig_prime] .= collect(1:length(unique_i_orig_prime))
+
+    # Create repaired mesh
+    point_new = point[unique_i_orig_prime]
+    i_orig_new = i_prime_new[i_orig_prime]
+    ind_new = [i_orig_new[k] for k = ind]
+    return HomogenousMesh(faces=ind_new, vertices=point_new)
+end
