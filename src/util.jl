@@ -122,7 +122,8 @@ function transform_HomogenousMesh!(mesh::HomogenousMesh; rot::Rotation=one(Quat{
 end
 
 function repair_mesh(mesh_leaky::HomogenousMesh)
-    # Currently this function only detects duplicate points in defective meshes.
+    # Currently this function: merges duplicate points in defective meshes.
+    # Deletes unused points
 
     function shortest_side(abc::SVector{3,SVector{3,Float64}})
         a, b, c = abc
@@ -153,4 +154,58 @@ function repair_mesh(mesh_leaky::HomogenousMesh)
     i_orig_new = i_prime_new[i_orig_prime]
     ind_new = [i_orig_new[k] for k = ind]
     return HomogenousMesh(faces=ind_new, vertices=point_new)
+end
+
+function recursivly_rotate!(i::Vector{SVector{3,Int64}}, p::Vector{SVector{3,Float64}}, i_detele::BitArray{1},
+        k::Int64, n̂::SVector{3,Float64}, d::Float64, perm::Int64, is_hard::Bool)
+
+    function util(ind::Int64)
+        point = p[ind]
+        proj_val = dot(point, n̂) + d
+        return point, proj_val, proj_val >= 0.0
+    end
+
+    (perm == 4) && error("perm is 4")
+    i1 = i[k][perm]
+    i2 = i[k][mod1(perm + 1, 3)]
+    i3 = i[k][mod1(perm + 2, 3)]
+    p1, v1, b1 = util(i1)
+    p2, v2, b2 = util(i2)
+    p3, v3, b3 = util(i3)
+    if b2 != b3
+        recursivly_rotate!(i, p, i_detele, k, n̂, d, perm + 1, is_hard)
+    else
+        le_sum = b1 + b2 + b3
+        if le_sum == 3
+        elseif is_hard || (le_sum == 0)
+            i_detele[k] = true
+        else
+            c_12 = weightPoly(p1, p2, v1, v2)
+            c_31 = weightPoly(p3, p1, v3, v1)
+            push!(p, c_12)
+            i_12 = length(p)
+            push!(p, c_31)
+            i_31 = length(p)
+            if le_sum == 1
+                i[k] = SVector{3,Int64}(i1, i_12, i_31)
+            elseif le_sum == 2
+                i[k] = SVector{3,Int64}(i2, i3, i_12)
+                push!(i, SVector{3,Int64}(i3, i_31, i_12))
+            end
+        end
+    end
+end
+
+function crop_mesh(mesh::HomogenousMesh, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=true)
+    m = deepcopy(mesh)
+    p = get_h_mesh_vertices(m)
+    i = get_h_mesh_faces(m)
+    n_faces_orig = length(i)
+    i_detele = falses(n_faces_orig)
+    for k = 1:n_faces_orig
+        recursivly_rotate!(i, p, i_detele, k, n̂, d, 1, is_hard)
+    end
+    deleteat!(i, findall(i_detele))
+    new_hm = HomogenousMesh(vertices=p, faces=i)
+    return repair_mesh(new_hm)
 end

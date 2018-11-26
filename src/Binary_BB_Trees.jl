@@ -9,6 +9,7 @@ using StaticArrays
 using DataStructures
 using Statistics
 using NearestNeighbors
+using NumericalTricks
 
 include("box_types.jl")
 include("util.jl")
@@ -38,6 +39,7 @@ export
     scale_HomogenousMesh!,
     transform_HomogenousMesh!,
     repair_mesh,
+    crop_mesh,
 
     # vector_cache.jl
     VectorCache,
