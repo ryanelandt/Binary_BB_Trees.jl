@@ -18,6 +18,7 @@ include("tree_types.jl")
 include("BB_intersection.jl")
 include("blob_types.jl")
 include("top_down.jl")
+include("mesh.jl")
 
 
 export
@@ -26,6 +27,16 @@ export
     boxArea,
     boxVolume,
     combineAABB,
+
+    # mesh.jl
+    Tri,
+    Tet,
+    eMesh,
+    n_points,
+    n_tri,
+    n_tet,
+    mesh_inplace_rekey!,
+    mesh_remove_unused_points!,
 
     # util.jl
     svSvToAABB,
