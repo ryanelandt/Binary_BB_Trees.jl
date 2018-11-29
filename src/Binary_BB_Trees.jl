@@ -38,6 +38,9 @@ export
     mesh_inplace_rekey!,
     mesh_remove_unused_points!,
     delete_triangles!,
+    mesh_repair!,
+    output_eMesh_box,
+    output_eMesh_hole,
 
     # util.jl
     svSvToAABB,

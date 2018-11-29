@@ -6,18 +6,41 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
     point::Vector{SVector{3,Float64}}
     tri::Union{Nothing,Vector{SVector{3,Int64}}}
     tet::Union{Nothing,Vector{SVector{4,Int64}}}
-    function eMesh(point::Vector{SVector{3,Float64}},
-                          tri::Union{Nothing,Vector{SVector{3,Int64}}},
-                          tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing)
-        #
+    function eMesh( point::Vector{SVector{3,Float64}},
+                    tri::Union{Nothing,Vector{SVector{3,Int64}}},
+                    tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing)
+
         T1_ = ifelse(tri == nothing, Nothing, Tri)
         T2_ = ifelse(tet == nothing, Nothing, Tet)
+        if T2_ == Tet
+            for k = 1:length(tet)
+                (0.0 < volume(point[tet[k]])) || error("something is wrong")
+            end
+        end
         T1_ == T2_ == Nothing && error("a whole lot of nothing")
         return new{T1_,T2_}(point, tri, tet)
     end
     function eMesh(hm::HomogenousMesh, tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing)
         point = get_h_mesh_vertices(hm)
         tri = get_h_mesh_faces(hm)
+        return eMesh(point, tri, tet)
+    end
+    function eMesh{Tri,Nothing}()
+        point = Vector{SVector{3,Float64}}()
+        tri = Vector{SVector{3,Int64}}()
+        tet = nothing
+        return eMesh(point, tri, tet)
+    end
+    function eMesh{Nothing,Tet}()
+        point = Vector{SVector{3,Float64}}()
+        tri = nothing
+        tet = Vector{SVector{4,Int64}}()
+        return eMesh(point, tri, tet)
+    end
+    function eMesh{Tri,Tet}()
+        point = Vector{SVector{3,Float64}}()
+        tri = Vector{SVector{3,Int64}}()
+        tet = Vector{SVector{4,Int64}}()
         return eMesh(point, tri, tet)
     end
 end
@@ -48,6 +71,16 @@ function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
     append!(eM_1.point, eM_2.point)
     return nothing
 end
+
+function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {T1,T2}
+    point = e_mesh.point
+    for k = 1:n_points(e_mesh)
+        point[k] = dh_vector_mul(dh, point[k])
+    end
+    return nothing
+end
+
+### MESH REPAIR
 
 rekey!(v::Nothing, i::Vector{Int64}) = nothing
 rekey!(v::Vector{SVector{N,Int64}}, i::Vector{Int64}) where {N} = replace!(x -> i[x], v)
@@ -102,6 +135,7 @@ function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     return nothing
 end
 
+delete_triangles!(e_mesh::eMesh{Nothing,T2}) where {T2} = -9999
 function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
     # This needs to be in Tri_Tet_Intersections because of triangleNormal
 
@@ -129,4 +163,84 @@ function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
         end
     end
     return n_tri_delete
+end
+
+function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
+    mesh_inplace_rekey!(e_mesh)
+    mesh_remove_unused_points!(e_mesh)
+    return delete_triangles!(e_mesh)
+end
+
+### BASIC SHAPES
+function make_cone_points(rⁱ::Float64, rᵒ::Float64, h::Float64, k_slice::Int64, tot_slice::Int64)
+    polar_point(r::Float64, θ::Float64, z::Float64) = SVector{3,Float64}(r * cos(θ), r * sin(θ), z)
+
+    @assert(0 < rⁱ < rᵒ)
+    @assert(0 < h)
+    @assert(1 <= k_slice <= tot_slice)
+
+    v = Vector{SVector{3,Float64}}()
+    θ_space = LinRange{Float64}(0.0, 2*pi, tot_slice + 1)
+    θ_1 = θ_space[k_slice]
+    θ_2 = θ_space[k_slice + 1]
+    for k = 1:8
+        θ = ifelse(mod1(k, 4) <= 2, θ_1, θ_2)
+        r = ifelse(isodd(k), rⁱ, rᵒ)
+        z = ifelse(k <= 4, -0.5, +0.5) * h
+        push!(v, polar_point(r, θ, z))
+    end
+    push!(v, polar_point((rⁱ + rᵒ) / 2, (θ_1 + θ_2) / 2, 0.0))
+end
+
+function output_box_ind()
+    oriented_box_faces = (
+        SVector{4, Int64}(1,3,5,7),  # -x
+        SVector{4, Int64}(2,6,4,8),  # +x
+        SVector{4, Int64}(1,5,2,6),  # -y
+        SVector{4, Int64}(3,4,7,8),  # +y
+        SVector{4, Int64}(1,2,3,4),  # -z
+        SVector{4, Int64}(5,7,6,8),  # +z
+    )
+    tri = Vector{SVector{3,Int64}}()
+    tet = Vector{SVector{4,Int64}}()
+    for k = 1:6
+        bf_k = oriented_box_faces[k]
+        push!(tri, bf_k[SVector{3,Int64}(1,3,4)])
+        push!(tri, bf_k[SVector{3,Int64}(1,4,2)])
+    end
+    for k = 1:length(tri)
+        tri_k = tri[k]
+        push!(tet, SVector{4,Int64}(9, tri_k[1], tri_k[2], tri_k[3]))
+    end
+    return tri, tet
+end
+
+function output_eMesh_box()
+    point = [
+        SVector{3,Float64}(-1,-1,-1),
+        SVector{3,Float64}(+1,-1,-1),
+        SVector{3,Float64}(-1,+1,-1),
+        SVector{3,Float64}(+1,+1,-1),
+        SVector{3,Float64}(-1,-1,+1),
+        SVector{3,Float64}(+1,-1,+1),
+        SVector{3,Float64}(-1,+1,+1),
+        SVector{3,Float64}(+1,+1,+1),
+        SVector{3,Float64}( 0, 0, 0),
+    ]
+    tri, tet = output_box_ind()
+    return eMesh(point, tri, tet)
+end
+
+function output_eMesh_slice(rⁱ::Float64, rᵒ::Float64, h::Float64, k_slice::Int64, tot_slice::Int64)
+    point = make_cone_points(rⁱ, rᵒ, h, k_slice, tot_slice)
+    tri, tet = output_box_ind()
+    return eMesh(point, tri, tet)
+end
+
+function output_eMesh_hole(rⁱ::Float64, rᵒ::Float64, h::Float64, tot_slice::Int64)
+    eM_cone = eMesh{Tri,Tet}()
+    for k = 1:tot_slice
+        append!(eM_cone, output_eMesh_slice(0.1, 0.2, 0.1, k, tot_slice))
+    end
+    return eM_cone
 end
