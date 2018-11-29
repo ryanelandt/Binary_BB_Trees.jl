@@ -91,8 +91,8 @@ end
 
 function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     truth_vector = falses(n_points(e_mesh))
-    (T1 != Nothing) && (for k = eM_2.tri; truth_vector[k] = true; end)
-    (T2 != Nothing) && (for k = eM_2.tet; truth_vector[k] = true; end)
+    (T1 != Nothing) && (for k = e_mesh.tri; truth_vector[k] = true; end)
+    (T2 != Nothing) && (for k = e_mesh.tet; truth_vector[k] = true; end)
     new_key = cumsum(truth_vector)
     rekey!(e_mesh.tri, new_key)
     rekey!(e_mesh.tet, new_key)
@@ -100,4 +100,33 @@ function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     empty!(e_mesh.point)
     append!(e_mesh.point, point_new)
     return nothing
+end
+
+function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
+    # This needs to be in Tri_Tet_Intersections because of triangleNormal
+
+    sort!(e_mesh.tri, by = x -> sort(x))
+    n_tri_delete = 0
+    for k = n_tri(e_mesh):-1:2
+        if k <= n_tri(e_mesh)
+            vert_2 = e_mesh.tri[k]
+            vert_1 = e_mesh.tri[k - 1]
+            if sort(vert_1) == sort(vert_2)  # share same 3 indices
+                n̂_2 = triangleNormal(e_mesh.point[vert_2])
+                n̂_1 = triangleNormal(e_mesh.point[vert_1])
+                if n̂_2 ≈ n̂_1  # triangle is a duplicate (normals point in same direction)
+                    deleteat!(e_mesh.tri, k - 1)  # delete this triangle
+                    n_tri_delete += 1
+                elseif n̂_2 ≈ -n̂_1  # triangles oppose each other (normals point in different directions)
+                    is_check_this_k = false
+                    deleteat!(e_mesh.tri, k - 1)  # delete this triangle
+                    deleteat!(e_mesh.tri, k - 1)  # delete this triangle
+                    n_tri_delete += 2
+                else
+                    error("something is wrong")
+                end
+            end
+        end
+    end
+    return n_tri_delete
 end

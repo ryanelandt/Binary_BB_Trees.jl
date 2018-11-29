@@ -37,6 +37,7 @@ export
     n_tet,
     mesh_inplace_rekey!,
     mesh_remove_unused_points!,
+    delete_triangles!,
 
     # util.jl
     svSvToAABB,
