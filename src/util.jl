@@ -96,12 +96,13 @@ function extract_HomogenousMesh_face_vertices(hm::HomogenousMesh)
 end
 
 get_h_mesh_vertices(hm::HomogenousMesh) = [SVector{3,Float64}(k) for k = hm.vertices]
-
 get_h_mesh_faces(hm::HomogenousMesh) = [SVector{3,Int64}(k) for k = hm.faces]
 
 get_h_mesh_vertices_32(hm::HomogenousMesh) = [Point{3,Float32}(k) for k = hm.vertices]
-
 get_h_mesh_faces_32(hm::HomogenousMesh) = [Face{3,Int32}(k) for k = hm.faces]
+
+get_vertices_32(e_mesh::eMesh{Tri,T2}) where {T2} = [Point{3,Float32}(k) for k = e_mesh.point]
+get_faces_32(e_mesh::eMesh{Tri,T2}) where {T2} = [Face{3,Int32}(k) for k = e_mesh.tri]
 
 function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::Float64)
     return scale_HomogenousMesh!(mesh, scale * ones(SVector{3,Float64}))

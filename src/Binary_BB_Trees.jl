@@ -12,13 +12,13 @@ using NearestNeighbors
 using NumericalTricks
 
 include("box_types.jl")
+include("mesh.jl")
 include("util.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
 include("BB_intersection.jl")
 include("blob_types.jl")
 include("top_down.jl")
-include("mesh.jl")
 
 
 export
@@ -37,10 +37,13 @@ export
     n_points,
     n_tri,
     n_tet,
+    scale!,
+    dh_transform_mesh!,
     mesh_inplace_rekey!,
     mesh_remove_unused_points!,
     delete_triangles!,
     mesh_repair!,
+    output_eMesh_half_plane,
     output_eMesh_box,
     output_eMesh_hole,
 
@@ -53,6 +56,8 @@ export
     get_h_mesh_faces,
     get_h_mesh_vertices_32,
     get_h_mesh_faces_32,
+    get_vertices_32,
+    get_faces_32,
     scale_HomogenousMesh!,
     transform_HomogenousMesh!,
     repair_mesh,

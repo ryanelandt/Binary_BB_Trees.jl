@@ -84,6 +84,12 @@ function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
     return nothing
 end
 
+function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})
+    r = ones(SVector{3,Float64}) .* r
+    sv_33 = SMatrix{3,3,Float64,9}(r[1], 0.0, 0.0, 0.0, r[2], 0.0, 0.0, 0.0, r[3])
+    dh_transform_mesh!(e_mesh, basic_dh(sv_33))
+end
+
 function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {T1,T2}
     point = e_mesh.point
     for k = 1:n_points(e_mesh)
@@ -184,6 +190,16 @@ function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
 end
 
 ### BASIC SHAPES
+function output_eMesh_half_plane(plane_w::Float64=1.0)
+    v1, v2, v3 = [SVector{3,Float64}(cos(theta), sin(theta), 0.0) for theta = (0.0, 2*pi/3, 4*pi/3)]
+    v4 = SVector{3,Float64}(0.0, 0.0, -1.0) * plane_w
+    point = [v1, v2, v3, v4]
+    tri = [SVector{3,Int64}(1,2,3)]
+    tet = [SVector{4,Int64}(4,1,2,3)]
+    ϵ = [0.0, 0.0, 0.0, -plane_w]
+    return eMesh(point, tri, tet, ϵ)
+end
+
 function make_cone_points(rⁱ::Float64, rᵒ::Float64, h::Float64, k_slice::Int64, tot_slice::Int64)
     polar_point(r::Float64, θ::Float64, z::Float64) = SVector{3,Float64}(r * cos(θ), r * sin(θ), z)
 
@@ -229,7 +245,7 @@ function output_box_ind()
     return tri, tet, ϵ
 end
 
-function output_eMesh_box()
+function output_eMesh_box(r::Union{Float64,SVector{3,Float64}}=1.0)
     point = [
         SVector{3,Float64}(-1,-1,-1),
         SVector{3,Float64}(+1,-1,-1),
@@ -242,7 +258,9 @@ function output_eMesh_box()
         SVector{3,Float64}( 0, 0, 0),
     ]
     tri, tet, ϵ = output_box_ind()
-    return eMesh(point, tri, tet, ϵ)
+    e_mesh = eMesh(point, tri, tet, ϵ)
+    scale!(e_mesh, r)
+    return e_mesh
 end
 
 function output_eMesh_slice(rⁱ::Float64, rᵒ::Float64, h::Float64, k_slice::Int64, tot_slice::Int64)
