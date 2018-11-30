@@ -140,14 +140,14 @@ function repair_mesh(mesh_leaky::HomogenousMesh)
     idxs = inrange(balltree, point, min_side_length * 0.499)
 
     # Determine mapping of old indices to new indices
-    n_points = length(point)
-    i_orig_prime = collect(1:n_points)
-    for k = 1:n_points
+    n_point = length(point)
+    i_orig_prime = collect(1:n_point)
+    for k = 1:n_point
         k_current = i_orig_prime[k]
         i_orig_prime[idxs[k]] .= k_current
     end
     unique_i_orig_prime = unique(i_orig_prime)
-    i_prime_new = zeros(Int64, n_points) .- 9999
+    i_prime_new = zeros(Int64, n_point) .- 9999
     i_prime_new[unique_i_orig_prime] .= collect(1:length(unique_i_orig_prime))
 
     # Create repaired mesh
@@ -197,16 +197,25 @@ function recursivly_rotate!(i::Vector{SVector{3,Int64}}, p::Vector{SVector{3,Flo
     end
 end
 
-function crop_mesh(mesh::HomogenousMesh, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=true)
+function crop_mesh(mesh::HomogenousMesh, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false)
     m = deepcopy(mesh)
     p = get_h_mesh_vertices(m)
     i = get_h_mesh_faces(m)
     n_faces_orig = length(i)
-    i_detele = falses(n_faces_orig)
+    bool_delete = falses(n_faces_orig)
+    area_ = [area(p[k]) for k = i]
+    min_area = minimum(area_)
+    min_area_tol = min_area / 100
     for k = 1:n_faces_orig
-        recursivly_rotate!(i, p, i_detele, k, n̂, d, 1, is_hard)
+        recursivly_rotate!(i, p, bool_delete, k, n̂, d, 1, is_hard)
     end
-    deleteat!(i, findall(i_detele))
+    area_ = [area(p[k]) for k = i]
+    i_small = findall(area_ .<= min_area_tol)
+    i_delete = findall(bool_delete)
+    append!(i_delete, i_small)
+    i_delete = sort(unique(i_delete))
+
+    deleteat!(i, i_delete)
     new_hm = HomogenousMesh(vertices=p, faces=i)
     return repair_mesh(new_hm)
 end

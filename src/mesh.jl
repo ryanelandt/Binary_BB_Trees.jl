@@ -56,9 +56,22 @@ end
 as_tet_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, nothing, e_mesh.tet, e_mesh.ϵ)
 as_tri_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, e_mesh.tri, nothing, nothing)
 
-n_points(eM::eMesh) = length(eM.point)
+n_point(eM::eMesh) = length(eM.point)
 n_tri(eM::eMesh) = length(eM.tri)
 n_tet(eM::eMesh) = length(eM.tet)
+get_tri(eM::eMesh) = eM.tri
+get_tet(eM::eMesh) = eM.tet
+get_point(eM::eMesh) = eM.point
+
+
+# @inline get_tree_tet(m::MeshCache) = m.tree.tet
+# @inline get_tree_tri(m::MeshCache) = m.tree.tri
+# @inline get_c_prop(m::MeshCache) = m.tree.c_prop
+# @inline get_point(m::MeshCache) = m.mesh.point
+# @inline get_ind_tri(m::MeshCache) = m.mesh.tri
+# @inline get_ind_tet(m::MeshCache) = m.mesh.tet
+# @inline get_ϵ(m::MeshCache) = m.mesh.ϵ
+
 
 function Base.empty!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     empty!(e_mesh.point)
@@ -69,7 +82,7 @@ function Base.empty!(e_mesh::eMesh{T1,T2}) where {T1,T2}
 end
 
 function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
-    n_1 = n_points(eM_1)
+    n_1 = n_point(eM_1)
     if T1 != Nothing
         for k = eM_2.tri
             push!(eM_1.tri, k .+ n_1)
@@ -93,7 +106,7 @@ end
 
 function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {T1,T2}
     point = e_mesh.point
-    for k = 1:n_points(e_mesh)
+    for k = 1:n_point(e_mesh)
         point[k] = dh_vector_mul(dh, point[k])
     end
     return nothing
@@ -142,7 +155,7 @@ function mesh_inplace_rekey!(e_mesh::eMesh{T1,T2}) where {T1,T2}
 end
 
 function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
-    truth_vector = falses(n_points(e_mesh))
+    truth_vector = falses(n_point(e_mesh))
     (T1 != Nothing) && (for k = e_mesh.tri; truth_vector[k] = true; end)
     (T2 != Nothing) && (for k = e_mesh.tet; truth_vector[k] = true; end)
     new_key = cumsum(truth_vector)
@@ -156,8 +169,6 @@ end
 
 delete_triangles!(e_mesh::eMesh{Nothing,T2}) where {T2} = -9999
 function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
-    # This needs to be in Tri_Tet_Intersections because of triangleNormal
-
     sort!(e_mesh.tri, by = x -> sort(x))
     n_tri_delete = 0
     for k = n_tri(e_mesh):-1:2
@@ -176,6 +187,8 @@ function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
                     deleteat!(e_mesh.tri, k - 1)  # delete this triangle
                     n_tri_delete += 2
                 else
+                    println("n̂_1: ", n̂_1)
+                    println("n̂_2: ", n̂_2)
                     error("something is wrong")
                 end
             end
