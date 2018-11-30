@@ -32,6 +32,8 @@ export
     Tri,
     Tet,
     eMesh,
+    as_tet_eMesh,
+    as_tri_eMesh,
     n_points,
     n_tri,
     n_tet,

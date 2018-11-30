@@ -6,53 +6,64 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
     point::Vector{SVector{3,Float64}}
     tri::Union{Nothing,Vector{SVector{3,Int64}}}
     tet::Union{Nothing,Vector{SVector{4,Int64}}}
+    ϵ::Union{Nothing,Vector{Float64}}
     function eMesh( point::Vector{SVector{3,Float64}},
                     tri::Union{Nothing,Vector{SVector{3,Int64}}},
-                    tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing)
+                    tet::Union{Nothing,Vector{SVector{4,Int64}}},
+                    ϵ::Union{Nothing,Vector{Float64}})
 
         T1_ = ifelse(tri == nothing, Nothing, Tri)
         T2_ = ifelse(tet == nothing, Nothing, Tet)
         if T2_ == Tet
+            @assert(isa(ϵ, Vector{Float64}))
+            @assert(length(ϵ) == length(point), "length(ϵ) = $(length(ϵ)) but length(point) = $(length(point))")
             for k = 1:length(tet)
                 (0.0 < volume(point[tet[k]])) || error("something is wrong")
             end
         end
         T1_ == T2_ == Nothing && error("a whole lot of nothing")
-        return new{T1_,T2_}(point, tri, tet)
+        return new{T1_,T2_}(point, tri, tet, ϵ)
     end
-    function eMesh(hm::HomogenousMesh, tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing)
+    function eMesh(hm::HomogenousMesh, tet::Union{Nothing,Vector{SVector{4,Int64}}},
+            ϵ::Union{Nothing,Vector{Float64}})
+
         point = get_h_mesh_vertices(hm)
         tri = get_h_mesh_faces(hm)
-        return eMesh(point, tri, tet)
+        return eMesh(point, tri, tet, ϵ)
     end
     function eMesh{Tri,Nothing}()
         point = Vector{SVector{3,Float64}}()
         tri = Vector{SVector{3,Int64}}()
-        tet = nothing
-        return eMesh(point, tri, tet)
+        return eMesh(point, tri, nothing, nothing)
     end
     function eMesh{Nothing,Tet}()
         point = Vector{SVector{3,Float64}}()
         tri = nothing
         tet = Vector{SVector{4,Int64}}()
-        return eMesh(point, tri, tet)
+        ϵ = Vector{Float64}()
+        return eMesh(point, nothing, tet, ϵ)
     end
     function eMesh{Tri,Tet}()
         point = Vector{SVector{3,Float64}}()
         tri = Vector{SVector{3,Int64}}()
         tet = Vector{SVector{4,Int64}}()
-        return eMesh(point, tri, tet)
+        ϵ = Vector{Float64}()
+        return eMesh(point, tri, tet, ϵ)
     end
 end
+
+as_tet_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, nothing, e_mesh.tet, e_mesh.ϵ)
+as_tri_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, e_mesh.tri, nothing, nothing)
 
 n_points(eM::eMesh) = length(eM.point)
 n_tri(eM::eMesh) = length(eM.tri)
 n_tet(eM::eMesh) = length(eM.tet)
 
 function Base.empty!(e_mesh::eMesh{T1,T2}) where {T1,T2}
+    empty!(e_mesh.point)
     (T1 == Nothing) || empty!(e_mesh.tri)
     (T2 == Nothing) || empty!(e_mesh.tet)
-    empty!(e_mesh.point)
+    empty!(e_mesh.ϵ)
     return nothing
 end
 
@@ -67,6 +78,7 @@ function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
         for k = eM_2.tet
             push!(eM_1.tet, k .+ n_1)
         end
+        append!(eM_1.ϵ, eM_2.ϵ)
     end
     append!(eM_1.point, eM_2.point)
     return nothing
@@ -201,6 +213,8 @@ function output_box_ind()
         SVector{4, Int64}(1,2,3,4),  # -z
         SVector{4, Int64}(5,7,6,8),  # +z
     )
+    ϵ = zeros(Float64,8)
+    push!(ϵ, -1.0)
     tri = Vector{SVector{3,Int64}}()
     tet = Vector{SVector{4,Int64}}()
     for k = 1:6
@@ -212,7 +226,7 @@ function output_box_ind()
         tri_k = tri[k]
         push!(tet, SVector{4,Int64}(9, tri_k[1], tri_k[2], tri_k[3]))
     end
-    return tri, tet
+    return tri, tet, ϵ
 end
 
 function output_eMesh_box()
@@ -227,20 +241,20 @@ function output_eMesh_box()
         SVector{3,Float64}(+1,+1,+1),
         SVector{3,Float64}( 0, 0, 0),
     ]
-    tri, tet = output_box_ind()
-    return eMesh(point, tri, tet)
+    tri, tet, ϵ = output_box_ind()
+    return eMesh(point, tri, tet, ϵ)
 end
 
 function output_eMesh_slice(rⁱ::Float64, rᵒ::Float64, h::Float64, k_slice::Int64, tot_slice::Int64)
     point = make_cone_points(rⁱ, rᵒ, h, k_slice, tot_slice)
-    tri, tet = output_box_ind()
-    return eMesh(point, tri, tet)
+    tri, tet, ϵ = output_box_ind()
+    return eMesh(point, tri, tet, ϵ)
 end
 
 function output_eMesh_hole(rⁱ::Float64, rᵒ::Float64, h::Float64, tot_slice::Int64)
     eM_cone = eMesh{Tri,Tet}()
     for k = 1:tot_slice
-        append!(eM_cone, output_eMesh_slice(0.1, 0.2, 0.1, k, tot_slice))
+        append!(eM_cone, output_eMesh_slice(rⁱ, rᵒ, h, k, tot_slice))
     end
     return eM_cone
 end
