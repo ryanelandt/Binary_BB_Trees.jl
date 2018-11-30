@@ -17,6 +17,7 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
         if T2_ == Tet
             @assert(isa(ϵ, Vector{Float64}))
             @assert(length(ϵ) == length(point), "length(ϵ) = $(length(ϵ)) but length(point) = $(length(point))")
+            (length(ϵ) != 0) && @assert(maximum(ϵ) == 0.0, "strain must be zero on the surface of the volume mesh")
             for k = 1:length(tet)
                 (0.0 < volume(point[tet[k]])) || error("something is wrong")
             end
@@ -245,7 +246,7 @@ function output_box_ind()
     return tri, tet, ϵ
 end
 
-function output_eMesh_box(r::Union{Float64,SVector{3,Float64}}=1.0)
+function output_eMesh_box(r::Union{Float64,SVector{3,Float64}}=1.0, c::SVector{3,Float64}=zeros(SVector{3,Float64}))
     point = [
         SVector{3,Float64}(-1,-1,-1),
         SVector{3,Float64}(+1,-1,-1),
@@ -260,6 +261,7 @@ function output_eMesh_box(r::Union{Float64,SVector{3,Float64}}=1.0)
     tri, tet, ϵ = output_box_ind()
     e_mesh = eMesh(point, tri, tet, ϵ)
     scale!(e_mesh, r)
+    dh_transform_mesh!(e_mesh, basic_dh(c))
     return e_mesh
 end
 
