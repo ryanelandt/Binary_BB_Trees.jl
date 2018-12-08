@@ -98,11 +98,7 @@ function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
     return nothing
 end
 
-function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})
-    r = ones(SVector{3,Float64}) .* r
-    sv_33 = SMatrix{3,3,Float64,9}(r[1], 0.0, 0.0, 0.0, r[2], 0.0, 0.0, 0.0, r[3])
-    dh_transform_mesh!(e_mesh, basic_dh(sv_33))
-end
+### MESH MANIPULATION
 
 function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {T1,T2}
     point = e_mesh.point
@@ -110,6 +106,43 @@ function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {
         point[k] = dh_vector_mul(dh, point[k])
     end
     return nothing
+end
+
+function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})
+    r = ones(SVector{3,Float64}) .* r
+    sv_33 = SMatrix{3,3,Float64,9}(r[1], 0.0, 0.0, 0.0, r[2], 0.0, 0.0, 0.0, r[3])
+    dh_transform_mesh!(e_mesh, basic_dh(sv_33))
+end
+
+function crop_mesh(e_mesh::eMesh{Tri,T2}, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false) where {T2}
+    (T2 == Nothing) || @warn "tetrahedron clipping NOT handled correctly"
+    m = deepcopy(e_mesh)
+    p = get_point(m)
+    i = get_tri(m)
+    n_faces_orig = length(i)
+    bool_delete = falses(n_faces_orig)
+    area_ = [area(p[k]) for k = i]
+    min_area = minimum(area_)
+    min_area_tol = min_area / 100
+    for k = 1:n_faces_orig
+        recursivly_rotate!(i, p, bool_delete, k, n̂, d, 1, is_hard)
+    end
+    area_ = [area(p[k]) for k = i]
+    i_small = findall(area_ .<= min_area_tol)
+    i_delete = findall(bool_delete)
+    append!(i_delete, i_small)
+    i_delete = sort(unique(i_delete))
+    deleteat!(i, i_delete)
+    ϵ = zeros(Float64, length(p))
+
+    if T2 == Nothing
+        e_mesh_new = eMesh(p, i, nothing, nothing)
+    else
+        e_mesh_new = eMesh(p, i, e_mesh.tet, ϵ)
+    end
+
+    mesh_repair!(e_mesh_new)
+    return e_mesh_new
 end
 
 ### MESH REPAIR
