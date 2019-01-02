@@ -63,16 +63,6 @@ get_tri(eM::eMesh) = eM.tri
 get_tet(eM::eMesh) = eM.tet
 get_point(eM::eMesh) = eM.point
 
-
-# @inline get_tree_tet(m::MeshCache) = m.tree.tet
-# @inline get_tree_tri(m::MeshCache) = m.tree.tri
-# @inline get_c_prop(m::MeshCache) = m.tree.c_prop
-# @inline get_point(m::MeshCache) = m.mesh.point
-# @inline get_ind_tri(m::MeshCache) = m.mesh.tri
-# @inline get_ind_tet(m::MeshCache) = m.mesh.tet
-# @inline get_ϵ(m::MeshCache) = m.mesh.ϵ
-
-
 function Base.empty!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     empty!(e_mesh.point)
     (T1 == Nothing) || empty!(e_mesh.tri)

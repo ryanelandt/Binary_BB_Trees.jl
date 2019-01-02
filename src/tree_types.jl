@@ -12,6 +12,20 @@ mutable struct bin_BB_Tree
     end
 end
 
+function Base.show(io::IO, bin_tree::bin_BB_Tree)
+    n_leaf = leafNumber(bin_tree)
+    n_depth = treeDepth(bin_tree)
+    println(io, "bin_BB_Tree with $n_leaf leaves in $n_depth layers:")
+    if n_depth == 1
+        frac_high = n_leaf / (2^n_depth - 1)
+        frac_low = n_leaf / (2^(n_depth - 1) - 1)
+        @printf("    fill between %.3f and %.3f of optimal \n", frac_high, frac_low)
+        if (frac_high < 0.1) || (frac_low < 0.2)
+            @warn("tree may be unbalanced")
+        end    
+    end
+end
+
 mutable struct TT_Cache
     vc::VectorCache{Tuple{Int64, Int64}}
     t_a_b::SVector{3,Float64}

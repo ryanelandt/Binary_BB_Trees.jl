@@ -2,6 +2,7 @@ __precompile__(true)
 
 module Binary_BB_Trees
 
+using Printf
 using GeometryTypes: HomogenousMesh, Face, Point
 using Rotations
 using LinearAlgebra
