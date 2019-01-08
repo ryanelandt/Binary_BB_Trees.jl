@@ -184,9 +184,14 @@ function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     new_key = cumsum(truth_vector)
     rekey!(e_mesh.tri, new_key)
     rekey!(e_mesh.tet, new_key)
+
     point_new = e_mesh.point[findall(truth_vector)]
     empty!(e_mesh.point)
     append!(e_mesh.point, point_new)
+
+    ϵ_new = e_mesh.ϵ[findall(truth_vector)]
+    empty!(e_mesh.ϵ)
+    append!(e_mesh.ϵ, ϵ_new)
     return nothing
 end
 
