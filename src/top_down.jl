@@ -10,12 +10,12 @@ end
 function bin_BB_Tree_Bound(bb_aabb)
     box = bb_aabb[1].box
     for k = 2:length(bb_aabb)
-        box = combineAABB(box, bb_aabb[k].box)
+        box = combine_BB(box, bb_aabb[k].box)
     end
     return box
 end
 
-function recursive_top_down(bb_aabb::Vector{bin_BB_Tree})
+function recursive_top_down(bb_aabb::Vector{bin_BB_Tree{AABB}})
     n = length(bb_aabb)
     (n == 1) && (return bb_aabb[1])
     (n == 2) && (return bin_BB_Tree(bb_aabb[1], bb_aabb[2]))

@@ -3,6 +3,31 @@ function BB_BB_intersect(tt::TT_Cache, a::AABB, b::AABB)
     return BB_BB_intersect(a.e, b.e, t, tt.R_a_b, tt.abs_R_a_b)
 end
 
+
+function BB_BB_intersect(tt::TT_Cache, a::OBB, b::OBB)
+    i_dh_a = basic_dh(a.R', -a.R' * a.c)
+    dh_a_b = basic_dh(tt.R_a_b, tt.t_a_b)
+    dh_b = basic_dh(b.R, b.c)
+
+    dh_final = i_dh_a * dh_a_b * dh_b
+    R_tot, t = dh_R_t(dh_final)
+
+    abs_R_tot = abs.(R_tot) .+ 1.0e-14
+    return BB_BB_intersect(a.e, b.e, t, R_tot, abs_R_tot)
+end
+
+# function Binary_BB_Trees.BB_BB_intersect(tt::TT_Cache, a::OBB, b::OBB)
+#     dh_a = basic_dh(a.R, a.c)
+#     dh_a_b = basic_dh(tt.R_a_b, tt.t_a_b)
+#     dh_b = basic_dh(b.R, b.c)
+#
+#     dh_final = inv(dh_a) * dh_a_b * dh_b  # TODO: optimize this
+#     R_tot, t = dh_R_t(dh_final)
+#
+#     abs_R_tot = abs.(R_tot) .+ 1.0e-14
+#     return BB_BB_intersect(a.e, b.e, t, R_tot, abs_R_tot)
+# end
+
 s221(r::SVector{3, Float64}) = SVector{3, Float64}(r[3], r[3], r[2])
 s100(r::SVector{3, Float64}) = SVector{3, Float64}(r[2], r[1], r[1])
 

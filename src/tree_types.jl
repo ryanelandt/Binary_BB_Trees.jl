@@ -1,14 +1,17 @@
-mutable struct bin_BB_Tree
+mutable struct bin_BB_Tree{BB_Type}
     id::Int64
-    box::AABB
+    box::BB_Type
     node_1::bin_BB_Tree
     node_2::bin_BB_Tree
-    function bin_BB_Tree(id::Int64, BB::AABB)
-        return new(id, BB)
+    function bin_BB_Tree(id::Int64, bb::BB_Type) where {BB_Type <: BoundingBox}
+        return new{BB_Type}(id, bb)
     end
-    function bin_BB_Tree(node_1::bin_BB_Tree, node_2::bin_BB_Tree)
-        aabb = combineAABB(node_1.box, node_2.box)
-        return new(-9999, aabb, node_1, node_2)
+    function bin_BB_Tree(node_1::bin_BB_Tree{BB_Type}, node_2::bin_BB_Tree{BB_Type}) where {BB_Type <: BoundingBox}
+        aabb = combine_BB(node_1.box, node_2.box)
+        return new{BB_Type}(-9999, aabb, node_1, node_2)
+    end
+    function bin_BB_Tree(bb::BB_Type, node_1::bin_BB_Tree{BB_Type}, node_2::bin_BB_Tree{BB_Type}) where {BB_Type <: BoundingBox}
+        return new{BB_Type}(-9999, bb, node_1, node_2)
     end
 end
 
@@ -22,7 +25,7 @@ function Base.show(io::IO, bin_tree::bin_BB_Tree)
         @printf("    fill between %.3f and %.3f of optimal \n", frac_high, frac_low)
         if (frac_high < 0.1) || (frac_low < 0.2)
             @warn("tree may be unbalanced")
-        end    
+        end
     end
 end
 

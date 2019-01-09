@@ -20,14 +20,17 @@ include("tree_types.jl")
 include("BB_intersection.jl")
 include("blob_types.jl")
 include("top_down.jl")
+include("obb_construction.jl")
 
 
 export
     # box_types.jl
+    BoundingBox,
     AABB,
+    OBB,
     boxArea,
     boxVolume,
-    combineAABB,
+    combine_BB,
 
     # mesh.jl
     Tri,
@@ -93,8 +96,13 @@ export
 
     # blob_types.jl
     blob,
-    triTetMeshToTreeAABB
+    triTetMeshToTreeAABB,
 
     # top_down.jl
+
+    # obb_construction.jl
+    fit_tet_obb,
+    fit_tri_obb,
+    obb_tree_from_aabb
 
 end # module

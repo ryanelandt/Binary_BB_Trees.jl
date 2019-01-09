@@ -189,9 +189,11 @@ function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     empty!(e_mesh.point)
     append!(e_mesh.point, point_new)
 
-    ϵ_new = e_mesh.ϵ[findall(truth_vector)]
-    empty!(e_mesh.ϵ)
-    append!(e_mesh.ϵ, ϵ_new)
+    if T2 != Nothing
+        ϵ_new = e_mesh.ϵ[findall(truth_vector)]
+        empty!(e_mesh.ϵ)
+        append!(e_mesh.ϵ, ϵ_new)
+    end
     return nothing
 end
 

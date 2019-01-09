@@ -27,6 +27,15 @@ function aabb_for_points(a::SVector{3,Float64}, b::SVector{3,Float64})
     return AABB(center, extent)
 end
 
+function combine_BB(a::BB_Type, b::BB_Type) where {BB_Type <: BoundingBox}
+    # TODO: put in utility
+
+    min_1, max_1 = calc_min_max(a)
+    min_2, max_2 = calc_min_max(b)
+    aabb = svSvToAABB(SVector{4,SVector{3,Float64}}(min_1, max_1, min_2, max_2))
+    return BB_Type(aabb)
+end
+
 calc_min_max(a::AABB) = a.c - a.e, a.c + a.e
 
 function calc_min_max(point::Vector{SVector{3,T}}) where {T}
@@ -45,7 +54,8 @@ function calc_min_max(hm::HomogenousMesh)
     return calc_min_max(point)
 end
 
-function calc_min_max(sv::SVector{N,Float64}) where {N}
+# function calc_min_max(sv::SVector{N,Float64}) where {N}
+function calc_min_max(sv::SVector{3,Float64})
     min_ = findMinSVSV(sv)
     max_ = findMaxSVSV(sv)
     return min_, max_

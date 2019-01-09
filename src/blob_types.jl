@@ -89,7 +89,7 @@ function doCombineBlob(dict_blob, a::blob, b::blob, k_next::Int64, scale::Float6
 end
 
 function calcMarginalCost(a::blob, b::blob, scale::Float64)
-    c_cost = blobCost(combineAABB(a.bin_BB_Tree.box, b.bin_BB_Tree.box), a.n_below + b.n_below, scale)
+    c_cost = blobCost(combine_BB(a.bin_BB_Tree.box, b.bin_BB_Tree.box), a.n_below + b.n_below, scale)
     return c_cost - a.cost - b.cost
 end
 
