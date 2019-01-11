@@ -21,6 +21,8 @@ include("BB_intersection.jl")
 include("blob_types.jl")
 include("top_down.jl")
 include("obb_construction.jl")
+include("mesh_create_rot_sym.jl")
+include("mesh_create_swept.jl")
 
 
 export
@@ -103,6 +105,14 @@ export
     # obb_construction.jl
     fit_tet_obb,
     fit_tri_obb,
-    obb_tree_from_aabb
+    obb_tree_from_aabb,
+
+    # mesh_create_rot_sym.jl
+    obj_from_point_sequence,
+
+    # mesh_create_swept.jl
+    make_swept_mesh,
+    f_swept_helix,
+    f_swept_circle
 
 end # module

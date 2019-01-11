@@ -19,7 +19,7 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
             @assert(length(ϵ) == length(point), "length(ϵ) = $(length(ϵ)) but length(point) = $(length(point))")
             (length(ϵ) != 0) && @assert(maximum(ϵ) == 0.0, "strain must be zero on the surface of the volume mesh")
             for k = 1:length(tet)
-                (0.0 < volume(point[tet[k]])) || error("something is wrong")
+                (0.0 < volume(point[tet[k]])) || error("inverted tetrahedron")
             end
         end
         T1_ == T2_ == Nothing && error("a whole lot of nothing")
