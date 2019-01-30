@@ -114,58 +114,58 @@ get_h_mesh_faces_32(hm::HomogenousMesh) = [Face{3,Int32}(k) for k = hm.faces]
 get_vertices_32(e_mesh::eMesh{Tri,T2}) where {T2} = [Point{3,Float32}(k) for k = e_mesh.point]
 get_faces_32(e_mesh::eMesh{Tri,T2}) where {T2} = [Face{3,Int32}(k) for k = e_mesh.tri]
 
-function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::Float64)
-    return scale_HomogenousMesh!(mesh, scale * ones(SVector{3,Float64}))
-end
-function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::SVector{3,Float64})
-    for k = 1:length(mesh.vertices)
-        mesh.vertices[k] = mesh.vertices[k] .* scale
-    end
-    return nothing
-end
-
-function transform_HomogenousMesh!(mesh::HomogenousMesh; rot::Rotation=one(Quat{Float64}), trans::SVector{3,Float64}=zeros(SVector{3,Float64}))
-    R = RotMatrix(rot)
-    for k = 1:length(mesh.vertices)
-        mesh.vertices[k] = R * mesh.vertices[k] + trans
-    end
-    return nothing
-end
-
-function repair_mesh(mesh_leaky::HomogenousMesh)
-    # Currently this function: merges duplicate points in defective meshes.
-    # Deletes unused points
-
-    function shortest_side(abc::SVector{3,SVector{3,Float64}})
-        a, b, c = abc
-        return min(norm(a - b), norm(b - c), norm(c - a))
-    end
-
-    # All points closer to each other than hald a side length are duplicates
-    ind = get_h_mesh_faces(mesh_leaky)
-    point = get_h_mesh_vertices(mesh_leaky)
-    balltree = BallTree(point; reorder = false)
-    idxs, dists = knn(balltree, point, 20, true)
-    min_side_length = minimum([shortest_side(point[k]) for k = ind])
-    idxs = inrange(balltree, point, min_side_length * 0.499)
-
-    # Determine mapping of old indices to new indices
-    n_point = length(point)
-    i_orig_prime = collect(1:n_point)
-    for k = 1:n_point
-        k_current = i_orig_prime[k]
-        i_orig_prime[idxs[k]] .= k_current
-    end
-    unique_i_orig_prime = unique(i_orig_prime)
-    i_prime_new = zeros(Int64, n_point) .- 9999
-    i_prime_new[unique_i_orig_prime] .= collect(1:length(unique_i_orig_prime))
-
-    # Create repaired mesh
-    point_new = point[unique_i_orig_prime]
-    i_orig_new = i_prime_new[i_orig_prime]
-    ind_new = [i_orig_new[k] for k = ind]
-    return HomogenousMesh(faces=ind_new, vertices=point_new)
-end
+# function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::Float64)
+#     return scale_HomogenousMesh!(mesh, scale * ones(SVector{3,Float64}))
+# end
+# function scale_HomogenousMesh!(mesh::HomogenousMesh, scale::SVector{3,Float64})
+#     for k = 1:length(mesh.vertices)
+#         mesh.vertices[k] = mesh.vertices[k] .* scale
+#     end
+#     return nothing
+# end
+#
+# function transform_HomogenousMesh!(mesh::HomogenousMesh; rot::Rotation=one(Quat{Float64}), trans::SVector{3,Float64}=zeros(SVector{3,Float64}))
+#     R = RotMatrix(rot)
+#     for k = 1:length(mesh.vertices)
+#         mesh.vertices[k] = R * mesh.vertices[k] + trans
+#     end
+#     return nothing
+# end
+#
+# function repair_mesh(mesh_leaky::HomogenousMesh)
+#     # Currently this function: merges duplicate points in defective meshes.
+#     # Deletes unused points
+#
+#     function shortest_side(abc::SVector{3,SVector{3,Float64}})
+#         a, b, c = abc
+#         return min(norm(a - b), norm(b - c), norm(c - a))
+#     end
+#
+#     # All points closer to each other than hald a side length are duplicates
+#     ind = get_h_mesh_faces(mesh_leaky)
+#     point = get_h_mesh_vertices(mesh_leaky)
+#     balltree = BallTree(point; reorder = false)
+#     idxs, dists = knn(balltree, point, 20, true)
+#     min_side_length = minimum([shortest_side(point[k]) for k = ind])
+#     idxs = inrange(balltree, point, min_side_length * 0.499)
+#
+#     # Determine mapping of old indices to new indices
+#     n_point = length(point)
+#     i_orig_prime = collect(1:n_point)
+#     for k = 1:n_point
+#         k_current = i_orig_prime[k]
+#         i_orig_prime[idxs[k]] .= k_current
+#     end
+#     unique_i_orig_prime = unique(i_orig_prime)
+#     i_prime_new = zeros(Int64, n_point) .- 9999
+#     i_prime_new[unique_i_orig_prime] .= collect(1:length(unique_i_orig_prime))
+#
+#     # Create repaired mesh
+#     point_new = point[unique_i_orig_prime]
+#     i_orig_new = i_prime_new[i_orig_prime]
+#     ind_new = [i_orig_new[k] for k = ind]
+#     return HomogenousMesh(faces=ind_new, vertices=point_new)
+# end
 
 function recursivly_rotate!(i::Vector{SVector{3,Int64}}, p::Vector{SVector{3,Float64}}, i_detele::BitArray{1},
         k::Int64, n̂::SVector{3,Float64}, d::Float64, perm::Int64, is_hard::Bool)
@@ -207,25 +207,25 @@ function recursivly_rotate!(i::Vector{SVector{3,Int64}}, p::Vector{SVector{3,Flo
     end
 end
 
-function crop_mesh(mesh::HomogenousMesh, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false)
-    m = deepcopy(mesh)
-    p = get_h_mesh_vertices(m)
-    i = get_h_mesh_faces(m)
-    n_faces_orig = length(i)
-    bool_delete = falses(n_faces_orig)
-    area_ = [area(p[k]) for k = i]
-    min_area = minimum(area_)
-    min_area_tol = min_area / 100
-    for k = 1:n_faces_orig
-        recursivly_rotate!(i, p, bool_delete, k, n̂, d, 1, is_hard)
-    end
-    area_ = [area(p[k]) for k = i]
-    i_small = findall(area_ .<= min_area_tol)
-    i_delete = findall(bool_delete)
-    append!(i_delete, i_small)
-    i_delete = sort(unique(i_delete))
-
-    deleteat!(i, i_delete)
-    new_hm = HomogenousMesh(vertices=p, faces=i)
-    return repair_mesh(new_hm)
-end
+# function crop_mesh(mesh::HomogenousMesh, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false)
+#     m = deepcopy(mesh)
+#     p = get_h_mesh_vertices(m)
+#     i = get_h_mesh_faces(m)
+#     n_faces_orig = length(i)
+#     bool_delete = falses(n_faces_orig)
+#     area_ = [area(p[k]) for k = i]
+#     min_area = minimum(area_)
+#     min_area_tol = min_area / 100
+#     for k = 1:n_faces_orig
+#         recursivly_rotate!(i, p, bool_delete, k, n̂, d, 1, is_hard)
+#     end
+#     area_ = [area(p[k]) for k = i]
+#     i_small = findall(area_ .<= min_area_tol)
+#     i_delete = findall(bool_delete)
+#     append!(i_delete, i_small)
+#     i_delete = sort(unique(i_delete))
+#
+#     deleteat!(i, i_delete)
+#     new_hm = HomogenousMesh(vertices=p, faces=i)
+#     return repair_mesh(new_hm)
+# end

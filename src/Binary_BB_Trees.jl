@@ -48,6 +48,7 @@ export
     get_point,
     scale!,
     dh_transform_mesh!,
+    invert!,
     mesh_inplace_rekey!,
     mesh_remove_unused_points!,
     delete_triangles!,

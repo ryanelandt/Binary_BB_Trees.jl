@@ -27,9 +27,9 @@ function add_slice(point::Vector{SVector{3,Float64}}, i::Vector{SVector{3,Int64}
         b⁺ = RZ_1 * b
 
         # TODO: is this necessary given mesh repair_mesh?
-        if (a[1] == 0.0) && (a[2] == 0.0)  # point has no xy extent
+        if (a[1] == 0.0)  # && (a[2] == 0.0)  # point has no xy extent
             add_triangle!(point, i, a, b⁺, b⁻)
-        elseif (b[1] == 0.0) && (b[2] == 0.0)
+        elseif (b[1] == 0.0)  # && (b[2] == 0.0)
             add_triangle!(point, i, a⁻, a⁺, b)
         else
             add_rectangle!(point, i, a⁻, a⁺, b⁻, b⁺)
@@ -46,6 +46,18 @@ end
 function obj_from_point_sequence(point_vec_2D::Vector{SVector{2,Float64}}, n_theta::Int64=10)
     # creates a rotationally symmetric object by rotating a vector of 2D points (x,z) about the z axis to create a
     # vector of 3D points (x,y,z)
+
+    ### FIXES degenerate points near the axis of rotation
+    for k = 1:length(point_vec_2D)
+        item_1, item_2 = point_vec_2D[k]
+        tol = 1.0e-12
+        if item_1 <= -tol
+            error("negative extent")
+        elseif item_1 <= tol
+            @warn("point near rotation axis set to 0.0")
+            point_vec_2D[k] = SVector{2,Float64}(0.0, item_2)
+        end
+    end
 
     point = Vector{SVector{3,Float64}}()
     i = Vector{SVector{3,Int64}}()

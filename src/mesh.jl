@@ -135,6 +135,13 @@ function crop_mesh(e_mesh::eMesh{Tri,T2}, n̂::SVector{3,Float64}, d::Float64, i
     return e_mesh_new
 end
 
+function invert!(eM::eMesh{Tri,Nothing})
+    for k = 1:n_tri(eM)
+        tri_k = eM.tri[k]
+        eM.tri[k] = SVector{3,Float64}(tri_k[3], tri_k[2], tri_k[1])
+    end
+end
+
 ### MESH REPAIR
 
 rekey!(v::Nothing, i::Vector{Int64}) = nothing
