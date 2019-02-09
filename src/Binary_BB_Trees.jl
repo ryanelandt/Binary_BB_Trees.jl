@@ -23,6 +23,7 @@ include("top_down.jl")
 include("obb_construction.jl")
 include("mesh_create_rot_sym.jl")
 include("mesh_create_swept.jl")
+include("extensions.jl")
 
 
 export
@@ -40,6 +41,8 @@ export
     eMesh,
     as_tet_eMesh,
     as_tri_eMesh,
+    vertex_pos_for_tri_ind,
+    vertex_pos_for_tet_ind,
     n_point,
     n_tri,
     n_tet,
@@ -52,8 +55,10 @@ export
     mesh_inplace_rekey!,
     mesh_remove_unused_points!,
     delete_triangles!,
+    sub_div_mesh,
     mesh_repair!,
     output_eMesh_half_plane,
+    output_eMesh_sphere,
     output_eMesh_box,
     output_eMesh_hole,
 
@@ -116,5 +121,8 @@ export
     make_swept_mesh_closed,
     f_swept_helix,
     f_swept_circle
+
+    # extensions.jl
+
 
 end # module

@@ -21,6 +21,8 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
             for k = 1:length(tet)
                 (0.0 < volume(point[tet[k]])) || error("inverted tetrahedron")
             end
+        else
+            @assert(ϵ == nothing)
         end
         T1_ == T2_ == Nothing && error("a whole lot of nothing")
         return new{T1_,T2_}(point, tri, tet, ϵ)
@@ -56,6 +58,9 @@ end
 as_tet_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, nothing, e_mesh.tet, e_mesh.ϵ)
 as_tri_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, e_mesh.tri, nothing, nothing)
 
+vertex_pos_for_tri_ind(eM::eMesh{Tri,T2}, k::Int64) where {T2} = eM.point[eM.tri[k]]
+vertex_pos_for_tet_ind(eM::eMesh{T1,Tet}, k::Int64) where {T1} = eM.point[eM.tet[k]]
+
 n_point(eM::eMesh) = length(eM.point)
 n_tri(eM::eMesh) = length(eM.tri)
 n_tet(eM::eMesh) = length(eM.tet)
@@ -67,8 +72,12 @@ function Base.empty!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     empty!(e_mesh.point)
     (T1 == Nothing) || empty!(e_mesh.tri)
     (T2 == Nothing) || empty!(e_mesh.tet)
-    empty!(e_mesh.ϵ)
+    (T2 == Nothing) || empty!(e_mesh.ϵ)
     return nothing
+end
+
+function Base.isempty(e_mesh::eMesh{T1,T2}) where {T1,T2}
+    return isempty(e_mesh.point)
 end
 
 function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
@@ -104,8 +113,12 @@ function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})
     dh_transform_mesh!(e_mesh, basic_dh(sv_33))
 end
 
-function crop_mesh(e_mesh::eMesh{Tri,T2}, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false) where {T2}
-    (T2 == Nothing) || @warn "tetrahedron clipping NOT handled correctly"
+function crop_mesh(e_mesh::eMesh{Tri,Nothing}, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false) # where {T2}
+    # (T2 == Nothing) || @warn "tetrahedron clipping NOT handled correctly"
+
+    e_mesh = deepcopy(e_mesh)
+    mesh_repair!(e_mesh)
+
     m = deepcopy(e_mesh)
     p = get_point(m)
     i = get_tri(m)
@@ -123,13 +136,13 @@ function crop_mesh(e_mesh::eMesh{Tri,T2}, n̂::SVector{3,Float64}, d::Float64, i
     append!(i_delete, i_small)
     i_delete = sort(unique(i_delete))
     deleteat!(i, i_delete)
-    ϵ = zeros(Float64, length(p))
+    # ϵ = zeros(Float64, length(p))
 
-    if T2 == Nothing
-        e_mesh_new = eMesh(p, i, nothing, nothing)
-    else
-        e_mesh_new = eMesh(p, i, e_mesh.tet, ϵ)
-    end
+    # if T2 == Nothing
+    #     e_mesh_new = eMesh(p, i, nothing, nothing)
+    # else
+    e_mesh_new = eMesh(p, i, nothing, nothing)  #  e_mesh.tet, ϵ)
+    # end
 
     mesh_repair!(e_mesh_new)
     return e_mesh_new
@@ -177,10 +190,12 @@ function mesh_inplace_rekey!(e_mesh::eMesh{T1,T2}) where {T1,T2}
         return first.(sort!.(idxs))
     end
 
-    min_side_length = shortest_side(e_mesh)
-    new_key = inplace_rekey(e_mesh.point, min_side_length)
-    rekey!(e_mesh.tri, new_key)
-    rekey!(e_mesh.tet, new_key)
+    if !isempty(e_mesh)  # reducing over an empty collection is not allowed
+        min_side_length = shortest_side(e_mesh)
+        new_key = inplace_rekey(e_mesh.point, min_side_length)
+        rekey!(e_mesh.tri, new_key)
+        rekey!(e_mesh.tet, new_key)
+    end
     return nothing
 end
 
@@ -234,10 +249,76 @@ function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
     return n_tri_delete
 end
 
+function sub_div_mesh(eM_ico::eMesh{Tri,T2}, n_div::Int64) where {T2}
+    n_end(n::Int64) = div((n + 1) * n, 2)
+    n_start(n::Int64) = 1 + n_end(n - 1)
+
+    function sub_div_triangle(p::SVector{3,SVector{3,Float64}}, n_div::Int64)
+        function sub_div_triangle_vert_index(n_div::Int64)
+            i_tri = Vector{SVector{3,Int64}}()
+            for k = 1:n_div
+                for kk = 0:(k - 1)
+                    i1 = n_start(k) + kk
+                    i2 = i1 + k
+                    i3 = i2 + 1
+                    push!(i_tri, SVector{3,Int64}(i1, i2, i3))
+                end
+                for kk = 0:(k - 2)
+                    i1 = n_start(k) + kk
+                    i2 = i1 + k + 1
+                    i3 = i2 - k
+                    push!(i_tri, SVector{3,Int64}(i1, i2, i3))
+                end
+            end
+            return i_tri
+        end
+
+        function get_new_point(n_vert::Int64, n_div::Int64, p::SVector{3,SVector{3,Float64}})
+            function find_layer_1(i_point::Int64)
+                i_end_layer = 1
+                i_layer = 1
+                while i_end_layer < i_point
+                    i_layer += 1
+                    i_end_layer += i_layer
+                end
+                norm_extent_1 = ifelse(i_point == 1, 0.0, (i_end_layer - i_point) / (i_layer - 1) )
+                return i_layer, norm_extent_1
+            end
+
+            i_layer, norm_extent_1 = find_layer_1(n_vert)
+            ϕ_1 = (n_div - i_layer + 1) / n_div
+            ϕ_2 = (1 - ϕ_1) * norm_extent_1
+            ϕ_3 = 1 - ϕ_1 - ϕ_2
+            ϕ = SVector{3,Float64}(ϕ_1, ϕ_2, ϕ_3)
+            return sum(p .* ϕ)
+        end
+
+        point = Vector{SVector{3,Float64}}()
+        i_tri_div = sub_div_triangle_vert_index(n_div)
+        for k = 1:n_end(n_div + 1)
+            push!(point, get_new_point(k, n_div, p))
+        end
+        return eMesh(point, i_tri_div, nothing, nothing)
+    end
+
+    eM_ico_div = eMesh{Tri,Nothing}()
+    for k = 1:n_tri(eM_ico)
+        p = vertex_pos_for_tri_ind(eM_ico, k)
+        append!(eM_ico_div, sub_div_triangle(p, n_div))
+    end
+    mesh_repair!(eM_ico_div)
+    return eM_ico_div
+end
+
 function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
+    # if isempty(e_mesh)
+    #     return 0
+    # else
+    mesh_remove_unused_points!(e_mesh)
     mesh_inplace_rekey!(e_mesh)
     mesh_remove_unused_points!(e_mesh)
     return delete_triangles!(e_mesh)
+    # end
 end
 
 ### BASIC SHAPES
@@ -249,6 +330,80 @@ function output_eMesh_half_plane(plane_w::Float64=1.0)
     tet = [SVector{4,Int64}(4,1,2,3)]
     ϵ = [0.0, 0.0, 0.0, -plane_w]
     return eMesh(point, tri, tet, ϵ)
+end
+
+function output_eMesh_sphere(rad::Float64=1.0, n_div::Int64=4)
+    function make_icosahedron()
+        φ = Base.MathConstants.golden
+
+        v = Vector{SVector{3,Float64}}()
+        for s_1 = (-1.0, +1.0)
+            for s_2 = (-1.0, +1.0)
+                push!(v, SVector{3,Float64}(    0.0,     s_1, φ * s_2) )
+                push!(v, SVector{3,Float64}(    s_1, φ * s_2,     0.0) )
+                push!(v, SVector{3,Float64}(φ * s_2,     0.0,     s_1) )
+            end
+        end
+
+        n_ico_vert = 12
+        d = zeros(n_ico_vert, n_ico_vert)
+        for k = 1:n_ico_vert
+            for kk = 1:n_ico_vert
+                d[k, kk] = norm(v[k] - v[kk])
+            end
+        end
+
+        v_face_vert = Vector{SVector{3,Int64}}()
+        b = d .== 2.0
+        for i1 = 1:n_ico_vert
+            for i2 = 1:n_ico_vert
+                for i3 = 1:n_ico_vert
+                    if (i1 < i2 < i3) && b[i1, i2] && b[i2, i3] && b[i1, i3]
+                        p1 = v[i1]
+                        p2 = v[i2]
+                        p3 = v[i3]
+                        n = triangleNormal(p1, p2, p3)
+                        c = normalize(centroid(p1, p2, p3))
+                        i_face = ifelse(n ≈ c, SVector{3,Int64}(i1, i2, i3), SVector{3,Int64}(i1, i3, i2))
+                        push!(v_face_vert, i_face)
+                    end
+                end
+            end
+        end
+
+        push!(v, SVector{3,Float64}(0,0,0))
+        v_tet = Vector{SVector{4,Int64}}()
+        for k = 1:length(v_face_vert)
+            push!(v_tet, SVector{4,Int64}(13, v_face_vert[k]...))
+        end
+        ϵ = vcat(zeros(n_ico_vert), -1.0)
+        return eMesh(v, v_face_vert, v_tet, ϵ)
+    end
+
+    function volumize_about(eM::eMesh{Tri,Nothing})
+        i_tet = Vector{SVector{4,Int64}}()
+        n_vert = n_point(eM)
+        n_center = n_vert + 1
+        for k = 1:n_tri(eM)
+            push!(i_tet, SVector{4,Int64}(n_center, eM.tri[k]...))
+        end
+        ϵ = vcat(zeros(n_vert), -1.0)
+        point = deepcopy(eM.point)
+        push!(point, zeros(SVector{3,Float64}))
+        return eMesh(point, eM.tri, i_tet, ϵ)
+    end
+
+    function project_to_sphere!(eM::eMesh, rad::Float64=1.0)
+        for k = 1:n_point(eM)
+            eM.point[k] = normalize(eM.point[k]) * rad
+        end
+        return nothing
+    end
+
+    eM_ico = make_icosahedron()
+    eM_ico_div = sub_div_mesh(eM_ico, n_div)
+    project_to_sphere!(eM_ico_div, rad)
+    return volumize_about(eM_ico_div)
 end
 
 function make_cone_points(rⁱ::Float64, rᵒ::Float64, h::Float64, k_slice::Int64, tot_slice::Int64)
