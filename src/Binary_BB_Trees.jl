@@ -73,9 +73,9 @@ export
     get_h_mesh_faces_32,
     get_vertices_32,
     get_faces_32,
-    scale_HomogenousMesh!,
-    transform_HomogenousMesh!,
-    repair_mesh,
+    # scale_HomogenousMesh!,
+    # transform_HomogenousMesh!,
+    # repair_mesh,
     crop_mesh,
 
     # vector_cache.jl
