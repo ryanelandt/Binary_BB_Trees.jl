@@ -57,6 +57,7 @@ end
 
 as_tet_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, nothing, e_mesh.tet, e_mesh.ϵ)
 as_tri_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, e_mesh.tri, nothing, nothing)
+as_tri_eMesh(e_mesh::eMesh{Tri,Nothing}) = deepcopy(e_mesh)
 
 vertex_pos_for_tri_ind(eM::eMesh{Tri,T2}, k::Int64) where {T2} = eM.point[eM.tri[k]]
 vertex_pos_for_tet_ind(eM::eMesh{T1,Tet}, k::Int64) where {T1} = eM.point[eM.tet[k]]
@@ -114,14 +115,20 @@ function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})
 end
 
 function crop_mesh(e_mesh::eMesh{Tri,Nothing}, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false) # where {T2}
-    # (T2 == Nothing) || @warn "tetrahedron clipping NOT handled correctly"
+    Base.depwarn("This function is depricated, call crop_mesh(e_mesh, plane::SMatrix{1,4,Float64,4}) instead.", :crop_mesh)
+    return crop_mesh(e_mesh, SMatrix{4,1,Float64,4}(n̂..., d), is_hard)
+end
+
+function crop_mesh(e_mesh::eMesh{Tri,Nothing}, plane::SMatrix{1,4,Float64,4}, is_hard::Bool=false) # where {T2}
+    n̂ = unPad(plane)
+    d = plane[4]
 
     e_mesh = deepcopy(e_mesh)
     mesh_repair!(e_mesh)
 
-    m = deepcopy(e_mesh)
-    p = get_point(m)
-    i = get_tri(m)
+    # m = deepcopy(e_mesh)
+    p = get_point(e_mesh)
+    i = get_tri(e_mesh)
     n_faces_orig = length(i)
     bool_delete = falses(n_faces_orig)
     area_ = [area(p[k]) for k = i]
@@ -136,14 +143,8 @@ function crop_mesh(e_mesh::eMesh{Tri,Nothing}, n̂::SVector{3,Float64}, d::Float
     append!(i_delete, i_small)
     i_delete = sort(unique(i_delete))
     deleteat!(i, i_delete)
-    # ϵ = zeros(Float64, length(p))
 
-    # if T2 == Nothing
-    #     e_mesh_new = eMesh(p, i, nothing, nothing)
-    # else
-    e_mesh_new = eMesh(p, i, nothing, nothing)  #  e_mesh.tet, ϵ)
-    # end
-
+    e_mesh_new = eMesh(p, i, nothing, nothing)
     mesh_repair!(e_mesh_new)
     return e_mesh_new
 end
@@ -311,14 +312,10 @@ function sub_div_mesh(eM_ico::eMesh{Tri,T2}, n_div::Int64) where {T2}
 end
 
 function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
-    # if isempty(e_mesh)
-    #     return 0
-    # else
     mesh_remove_unused_points!(e_mesh)
     mesh_inplace_rekey!(e_mesh)
     mesh_remove_unused_points!(e_mesh)
     return delete_triangles!(e_mesh)
-    # end
 end
 
 ### BASIC SHAPES
