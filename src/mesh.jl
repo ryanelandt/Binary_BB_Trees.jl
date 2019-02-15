@@ -319,11 +319,15 @@ function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
 end
 
 ### BASIC SHAPES
-function output_eMesh_half_plane(plane_w::Float64=1.0)
+function output_eMesh_half_plane(plane_w::Float64=1.0, is_include_vis_sides::Bool=false)
     v1, v2, v3 = [SVector{3,Float64}(cos(theta), sin(theta), 0.0) for theta = (0.0, 2*pi/3, 4*pi/3)]
     v4 = SVector{3,Float64}(0.0, 0.0, -1.0) * plane_w
     point = [v1, v2, v3, v4]
-    tri = [SVector{3,Int64}(1,2,3)]
+    if is_include_vis_sides
+        tri = [SVector{3,Int64}(1,2,3), SVector{3,Int64}(1,3,4),  SVector{3,Int64}(1,4,2), SVector{3,Int64}(2,4,3)]
+    else
+        tri = [SVector{3,Int64}(1,2,3)]
+    end
     tet = [SVector{4,Int64}(4,1,2,3)]
     ϵ = [0.0, 0.0, 0.0, -plane_w]
     return eMesh(point, tri, tet, ϵ)
