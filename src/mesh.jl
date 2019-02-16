@@ -9,8 +9,8 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
     ϵ::Union{Nothing,Vector{Float64}}
     function eMesh( point::Vector{SVector{3,Float64}},
                     tri::Union{Nothing,Vector{SVector{3,Int64}}},
-                    tet::Union{Nothing,Vector{SVector{4,Int64}}},
-                    ϵ::Union{Nothing,Vector{Float64}})
+                    tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing,
+                    ϵ::Union{Nothing,Vector{Float64}}=nothing)
 
         T1_ = ifelse(tri == nothing, Nothing, Tri)
         T2_ = ifelse(tet == nothing, Nothing, Tet)
@@ -27,11 +27,13 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
         T1_ == T2_ == Nothing && error("a whole lot of nothing")
         return new{T1_,T2_}(point, tri, tet, ϵ)
     end
-    function eMesh(hm::HomogenousMesh, tet::Union{Nothing,Vector{SVector{4,Int64}}},
-            ϵ::Union{Nothing,Vector{Float64}})
+    function eMesh(hm::HomogenousMesh, tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing,
+            ϵ::Union{Nothing,Vector{Float64}}=nothing)
 
-        point = get_h_mesh_vertices(hm)
-        tri = get_h_mesh_faces(hm)
+        point = [SVector{3,Float64}(k) for k = hm.vertices]
+        tri = [SVector{3,Int64}(k) for k = hm.faces]
+        # point = get_h_mesh_vertices(hm)
+        # tri = get_h_mesh_faces(hm)
         return eMesh(point, tri, tet, ϵ)
     end
     function eMesh{Tri,Nothing}()

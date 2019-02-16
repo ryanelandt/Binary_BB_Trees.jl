@@ -17,7 +17,7 @@ include("mesh.jl")
 include("util.jl")
 include("vector_cache.jl")
 include("tree_types.jl")
-include("BB_intersection.jl")
+include("bb_intersection.jl")
 include("blob_types.jl")
 include("top_down.jl")
 include("obb_construction.jl")
@@ -66,16 +66,13 @@ export
     svSvToAABB,
     calc_min_max,
     calc_aabb,
-    extract_HomogenousMesh_face_vertices,
-    get_h_mesh_vertices,
-    get_h_mesh_faces,
-    get_h_mesh_vertices_32,
-    get_h_mesh_faces_32,
+    # extract_HomogenousMesh_face_vertices,
+    # get_h_mesh_vertices,
+    # get_h_mesh_faces,
+    # get_h_mesh_vertices_32,
+    # get_h_mesh_faces_32,
     get_vertices_32,
     get_faces_32,
-    # scale_HomogenousMesh!,
-    # transform_HomogenousMesh!,
-    # repair_mesh,
     crop_mesh,
 
     # vector_cache.jl
@@ -83,15 +80,15 @@ export
     expand!,
     returnNext,
     addCacheItem!,
-    empty!,
-    isempty,
-    length,
+    # empty!,
+    # isempty,
+    # length,
 
     # tree_types.jl
     bin_BB_Tree,
     TT_Cache,
     update_TT_Cache!,
-    length,
+    # length,
     is_leaf,
     is_not_leaf,
     treeDepth,
@@ -99,7 +96,7 @@ export
     tree_tree_intersect,
     extractData,
 
-    # intersection_tests.jl
+    # bb_intersection.jl
     BB_BB_intersect,
 
     # blob_types.jl

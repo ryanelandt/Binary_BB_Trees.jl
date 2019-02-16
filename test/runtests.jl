@@ -8,9 +8,10 @@ using LinearAlgebra
 
 
 include("test_exports.jl")
-include("intersection_tests.jl")
-include("vector_cache_tests.jl")
-include("blob_tests.jl")
+include("test_intersection.jl")
+include("test_vector_cache.jl")
+include("test_blob.jl")
 include("test_mesh_create_rot_sym.jl")
 include("test_util.jl")
 include("test_mesh.jl")
+include("test_box_types.jl")
