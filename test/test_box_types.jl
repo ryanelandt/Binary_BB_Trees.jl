@@ -10,8 +10,8 @@
     @test aabb.c == c
     @test aabb.e == e
     @test AABB(aabb) == aabb
-    @test 6.0 == boxVolume(aabb)
-    @test 22.0 == boxArea(aabb)
+    @test 8 * 6.0 == boxVolume(aabb)
+    @test 4 * 22.0 == boxArea(aabb)
 end
 
 @testset "OBB" begin

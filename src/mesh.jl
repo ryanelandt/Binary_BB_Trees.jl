@@ -24,7 +24,7 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
         else
             @assert(ϵ == nothing)
         end
-        T1_ == T2_ == Nothing && error("a whole lot of nothing")
+        (T1_ == T2_ == Nothing) && error("a whole lot of nothing")
         return new{T1_,T2_}(point, tri, tet, ϵ)
     end
     function eMesh(hm::HomogenousMesh, tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing,
@@ -79,9 +79,7 @@ function Base.empty!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     return nothing
 end
 
-function Base.isempty(e_mesh::eMesh{T1,T2}) where {T1,T2}
-    return isempty(e_mesh.point)
-end
+Base.isempty(e_mesh::eMesh{T1,T2}) where {T1,T2} = isempty(e_mesh.point)
 
 function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
     n_1 = n_point(eM_1)
