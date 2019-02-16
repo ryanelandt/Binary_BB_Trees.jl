@@ -24,3 +24,12 @@ end
     @test center == (p1 + p2) * 0.5
     @test extent == (p2 - p1) * 0.5
 end
+
+@testset "calc_min_max" begin
+    min_, max_ = calc_min_max(p1, p2)
+    @test min_ == p1
+    @test max_ == p2
+    min_, max_ = calc_min_max(p2, p1)
+    @test min_ == p1
+    @test max_ == p2
+end

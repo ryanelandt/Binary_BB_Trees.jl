@@ -32,29 +32,11 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
 
         point = [SVector{3,Float64}(k) for k = hm.vertices]
         tri = [SVector{3,Int64}(k) for k = hm.faces]
-        # point = get_h_mesh_vertices(hm)
-        # tri = get_h_mesh_faces(hm)
         return eMesh(point, tri, tet, ϵ)
     end
-    function eMesh{Tri,Nothing}()
-        point = Vector{SVector{3,Float64}}()
-        tri = Vector{SVector{3,Int64}}()
-        return eMesh(point, tri, nothing, nothing)
-    end
-    function eMesh{Nothing,Tet}()
-        point = Vector{SVector{3,Float64}}()
-        tri = nothing
-        tet = Vector{SVector{4,Int64}}()
-        ϵ = Vector{Float64}()
-        return eMesh(point, nothing, tet, ϵ)
-    end
-    function eMesh{Tri,Tet}()
-        point = Vector{SVector{3,Float64}}()
-        tri = Vector{SVector{3,Int64}}()
-        tet = Vector{SVector{4,Int64}}()
-        ϵ = Vector{Float64}()
-        return eMesh(point, tri, tet, ϵ)
-    end
+    eMesh{Tri,Nothing}() = eMesh(Vector{SVector{3,Float64}}(), Vector{SVector{3,Int64}}(), nothing, nothing)
+    eMesh{Nothing,Tet}() = eMesh(Vector{SVector{3,Float64}}(), nothing, Vector{SVector{4,Int64}}(), Vector{Float64}())
+    eMesh{Tri,Tet}() = eMesh(Vector{SVector{3,Float64}}(), Vector{SVector{3,Int64}}(), Vector{SVector{4,Int64}}(), Vector{Float64}())
 end
 
 as_tet_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, nothing, e_mesh.tet, e_mesh.ϵ)
@@ -108,7 +90,7 @@ function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {
     return nothing
 end
 
-function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})
+function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})  # TODO: add this functionality to basic_dh constructor
     r = ones(SVector{3,Float64}) .* r
     sv_33 = SMatrix{3,3,Float64,9}(r[1], 0.0, 0.0, 0.0, r[2], 0.0, 0.0, 0.0, r[3])
     dh_transform_mesh!(e_mesh, basic_dh(sv_33))
@@ -122,11 +104,8 @@ end
 function crop_mesh(e_mesh::eMesh{Tri,Nothing}, plane::SMatrix{1,4,Float64,4}, is_hard::Bool=false) # where {T2}
     n̂ = unPad(plane)
     d = plane[4]
-
     e_mesh = deepcopy(e_mesh)
     mesh_repair!(e_mesh)
-
-    # m = deepcopy(e_mesh)
     p = get_point(e_mesh)
     i = get_tri(e_mesh)
     n_faces_orig = length(i)
@@ -143,7 +122,6 @@ function crop_mesh(e_mesh::eMesh{Tri,Nothing}, plane::SMatrix{1,4,Float64,4}, is
     append!(i_delete, i_small)
     i_delete = sort(unique(i_delete))
     deleteat!(i, i_delete)
-
     e_mesh_new = eMesh(p, i, nothing, nothing)
     mesh_repair!(e_mesh_new)
     return e_mesh_new
@@ -157,7 +135,6 @@ function invert!(eM::eMesh{Tri,Nothing})
 end
 
 ### MESH REPAIR
-
 rekey!(v::Nothing, i::Vector{Int64}) = nothing
 rekey!(v::Vector{SVector{N,Int64}}, i::Vector{Int64}) where {N} = replace!(x -> i[x], v)
 
@@ -185,6 +162,7 @@ function mesh_inplace_rekey!(e_mesh::eMesh{T1,T2}) where {T1,T2}
 
         return min(shortest_side(e_mesh.tri), shortest_side(e_mesh.tet))
     end
+
     function inplace_rekey(point::Vector{SVector{3,Float64}}, min_side_length::Float64)
         balltree = BallTree(point; reorder = false)
         idxs = inrange(balltree, point, min_side_length * 0.499)  # Assume that all points closer to each other than hald a side length are duplicates
@@ -207,11 +185,9 @@ function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     new_key = cumsum(truth_vector)
     rekey!(e_mesh.tri, new_key)
     rekey!(e_mesh.tet, new_key)
-
     point_new = e_mesh.point[findall(truth_vector)]
     empty!(e_mesh.point)
     append!(e_mesh.point, point_new)
-
     if T2 != Nothing
         ϵ_new = e_mesh.ϵ[findall(truth_vector)]
         empty!(e_mesh.ϵ)
@@ -484,3 +460,25 @@ function output_eMesh_hole(rⁱ::Float64, rᵒ::Float64, h::Float64, tot_slice::
     end
     return eM_cone
 end
+
+# function eMesh{Tri,Nothing}()
+#     point = Vector{SVector{3,Float64}}()
+#     tri = Vector{SVector{3,Int64}}()
+#     return eMesh(point, tri, nothing, nothing)
+# end
+
+# function eMesh{Nothing,Tet}()
+#     point = Vector{SVector{3,Float64}}()
+#     tri = nothing
+#     tet = Vector{SVector{4,Int64}}()
+#     ϵ = Vector{Float64}()
+#     return eMesh(point, nothing, tet, ϵ)
+# end
+
+# function eMesh{Tri,Tet}()
+#     point = Vector{SVector{3,Float64}}()
+#     tri = Vector{SVector{3,Int64}}()
+#     tet = Vector{SVector{4,Int64}}()
+#     ϵ = Vector{Float64}()
+#     return eMesh(point, tri, tet, ϵ)
+# end

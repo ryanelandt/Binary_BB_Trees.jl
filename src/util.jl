@@ -13,31 +13,8 @@ function minMaxToCenterExtent(box_min::SVector{3,Float64}, box_max::SVector{3,Fl
     return center, extent
 end
 
-function svSvToAABB(vert::SVector{N, SVector{3,Float64}}) where {N}
-    box_min = findMinSVSV(vert)
-    box_max = findMaxSVSV(vert)
-    center, extent = minMaxToCenterExtent(box_min, box_max)
-    return AABB(center, extent)
-end
-
-function aabb_for_points(a::SVector{3,Float64}, b::SVector{3,Float64})
-    min_ = findMinSVSV(a, b)
-    max_ = findMaxSVSV(a, b)
-    center, extent = minMaxToCenterExtent(min_, max_)
-    return AABB(center, extent)
-end
-
-function combine_BB(a::BB_Type, b::BB_Type) where {BB_Type <: BoundingBox}
-    # TODO: put in utility
-
-    min_1, max_1 = calc_min_max(a)
-    min_2, max_2 = calc_min_max(b)
-    aabb = svSvToAABB(SVector{4,SVector{3,Float64}}(min_1, max_1, min_2, max_2))
-    return BB_Type(aabb)
-end
-
+### calc_min_max
 calc_min_max(a::AABB) = a.c - a.e, a.c + a.e
-
 function calc_min_max(point::Vector{SVector{3,T}}) where {T}
     min_val = SVector{3,Float64}(+Inf, +Inf, +Inf)
     max_val = SVector{3,Float64}(-Inf, -Inf, -Inf)
@@ -48,31 +25,22 @@ function calc_min_max(point::Vector{SVector{3,T}}) where {T}
     end
     return min_val, max_val
 end
-
-# function calc_min_max(hm::HomogenousMesh)
-#     point, _ = extract_HomogenousMesh_face_vertices(hm)
-#     return calc_min_max(point)
-# end
-
-# function calc_min_max(sv::SVector{N,Float64}) where {N}
-function calc_min_max(sv::SVector{3,Float64})
-    min_ = findMinSVSV(sv)
-    max_ = findMaxSVSV(sv)
-    return min_, max_
-end
-
 function calc_min_max(a::SVector{3,Float64}, b::SVector{3,Float64})
     min_ = findMinSVSV(a, b)
     max_ = findMaxSVSV(a, b)
     return min_, max_
 end
 
+### calc_aabb
+function calc_aabb(vert::SVector{N, SVector{3,Float64}}) where {N}
+    box_min = findMinSVSV(vert)
+    box_max = findMaxSVSV(vert)
+    return calc_aabb(box_min, box_max)
+end
 function calc_aabb(arg_in)
     min_val, max_val = calc_min_max(arg_in)
-    center, extent = minMaxToCenterExtent(min_val, max_val)
-    return AABB(center, extent)
+    return calc_aabb(min_val, max_val)
 end
-
 function calc_aabb(a::SVector{3,Float64}, b::SVector{3,Float64})
     min_val, max_val = calc_min_max(a, b)
     center, extent = minMaxToCenterExtent(min_val, max_val)
@@ -98,18 +66,6 @@ function sortEdgeFace(v::SVector{4,Int64}, k::Int64)
     i1, i2 = minmax(i1, i2)  # --> i1 and i2 are sorted
     return SVector{3,Int64}(i1, i2, i3)
 end
-
-# function extract_HomogenousMesh_face_vertices(hm::HomogenousMesh)
-#     point = [SVector{3,Float64}(k) for k = hm.vertices]
-#     vec_tri = [SVector{3,Int64}(k) for k = hm.faces]
-#     return point, vec_tri
-# end
-#
-# get_h_mesh_vertices(hm::HomogenousMesh) = [SVector{3,Float64}(k) for k = hm.vertices]
-# get_h_mesh_faces(hm::HomogenousMesh) = [SVector{3,Int64}(k) for k = hm.faces]
-#
-# get_h_mesh_vertices_32(hm::HomogenousMesh) = [Point{3,Float32}(k) for k = hm.vertices]
-# get_h_mesh_faces_32(hm::HomogenousMesh) = [Face{3,Int32}(k) for k = hm.faces]
 
 get_vertices_32(e_mesh::eMesh{Tri,T2}) where {T2} = [Point{3,Float32}(k) for k = e_mesh.point]
 get_faces_32(e_mesh::eMesh{Tri,T2}) where {T2} = [Face{3,Int32}(k) for k = e_mesh.tri]
@@ -154,6 +110,36 @@ function recursivly_rotate!(i::Vector{SVector{3,Int64}}, p::Vector{SVector{3,Flo
     end
 end
 
+function svSvToAABB(vert::SVector{N, SVector{3,Float64}}) where {N}
+    Base.depwarn("This function is depricated, call calc_aabb(vert) instead.", :svSvToAABB)
+
+    box_min = findMinSVSV(vert)
+    box_max = findMaxSVSV(vert)
+    center, extent = minMaxToCenterExtent(box_min, box_max)
+    return AABB(center, extent)
+end
+
+function aabb_for_points(a::SVector{3,Float64}, b::SVector{3,Float64})
+    Base.depwarn("This function is depricated, call calc_aabb(a, b) instead.", :aabb_for_points)
+
+    min_ = findMinSVSV(a, b)
+    max_ = findMaxSVSV(a, b)
+    center, extent = minMaxToCenterExtent(min_, max_)
+    return AABB(center, extent)
+end
+
+# function extract_HomogenousMesh_face_vertices(hm::HomogenousMesh)
+#     point = [SVector{3,Float64}(k) for k = hm.vertices]
+#     vec_tri = [SVector{3,Int64}(k) for k = hm.faces]
+#     return point, vec_tri
+# end
+#
+# get_h_mesh_vertices(hm::HomogenousMesh) = [SVector{3,Float64}(k) for k = hm.vertices]
+# get_h_mesh_faces(hm::HomogenousMesh) = [SVector{3,Int64}(k) for k = hm.faces]
+#
+# get_h_mesh_vertices_32(hm::HomogenousMesh) = [Point{3,Float32}(k) for k = hm.vertices]
+# get_h_mesh_faces_32(hm::HomogenousMesh) = [Face{3,Int32}(k) for k = hm.faces]
+
 # function crop_mesh(mesh::HomogenousMesh, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false)
 #     m = deepcopy(mesh)
 #     p = get_h_mesh_vertices(m)
@@ -176,3 +162,17 @@ end
 #     new_hm = HomogenousMesh(vertices=p, faces=i)
 #     return repair_mesh(new_hm)
 # end
+
+# function calc_min_max(hm::HomogenousMesh)
+#     point, _ = extract_HomogenousMesh_face_vertices(hm)
+#     return calc_min_max(point)
+# end
+
+# function calc_min_max(sv::SVector{N,Float64}) where {N}
+# function calc_min_max(sv::SVector{3,Float64})
+#     min_ = findMinSVSV(sv)
+#     max_ = findMaxSVSV(sv)
+#     return min_, max_
+# end
+# center, extent = minMaxToCenterExtent(min_val, max_val)
+# return AABB(center, extent)
