@@ -17,7 +17,7 @@ function createBlobDictionary(point::Vector{SVector{3,Float64}}, vec_tri_tet::Ve
         return dict_blob, true
     end
     for (k, ind_k) = enumerate(vec_tri_tet)
-        aabb_k = svSvToAABB(point[ind_k])
+        aabb_k = calc_aabb(point[ind_k])
         tree_k = bin_BB_Tree(k, aabb_k)
         dict_blob[k] = blob(k, 1, vec_neighbor[k], tree_k, scale)
     end
@@ -89,7 +89,7 @@ function doCombineBlob(dict_blob, a::blob, b::blob, k_next::Int64, scale::Float6
 end
 
 function calcMarginalCost(a::blob, b::blob, scale::Float64)
-    c_cost = blobCost(combine_BB(a.bin_BB_Tree.box, b.bin_BB_Tree.box), a.n_below + b.n_below, scale)
+    c_cost = blobCost(AABB(a.bin_BB_Tree.box, b.bin_BB_Tree.box), a.n_below + b.n_below, scale)
     return c_cost - a.cost - b.cost
 end
 

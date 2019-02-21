@@ -28,4 +28,6 @@ end
     @test obb.e == obb_via_aabb.e == e
     @test obb.R == R
     @test obb_via_aabb.R == I
+    @test aabb == AABB(aabb, aabb)
+    @test obb_via_aabb == OBB(obb_via_aabb, obb_via_aabb)
 end

@@ -7,7 +7,7 @@ mutable struct bin_BB_Tree{BB_Type}
         return new{BB_Type}(id, bb)
     end
     function bin_BB_Tree(node_1::bin_BB_Tree{BB_Type}, node_2::bin_BB_Tree{BB_Type}) where {BB_Type <: BoundingBox}
-        aabb = combine_BB(node_1.box, node_2.box)
+        aabb = BB_Type(node_1.box, node_2.box)
         return new{BB_Type}(-9999, aabb, node_1, node_2)
     end
     function bin_BB_Tree(bb::BB_Type, node_1::bin_BB_Tree{BB_Type}, node_2::bin_BB_Tree{BB_Type}) where {BB_Type <: BoundingBox}

@@ -174,6 +174,7 @@ function mesh_inplace_rekey!(e_mesh::eMesh{T1,T2}) where {T1,T2}
         new_key = inplace_rekey(e_mesh.point, min_side_length)
         rekey!(e_mesh.tri, new_key)
         rekey!(e_mesh.tet, new_key)
+        return new_key
     end
     return nothing
 end

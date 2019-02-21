@@ -33,7 +33,6 @@ export
     OBB,
     boxArea,
     boxVolume,
-    combine_BB,
 
     # mesh.jl
     Tri,
@@ -63,14 +62,8 @@ export
     output_eMesh_hole,
 
     # util.jl
-    svSvToAABB,
     calc_min_max,
     calc_aabb,
-    # extract_HomogenousMesh_face_vertices,
-    # get_h_mesh_vertices,
-    # get_h_mesh_faces,
-    # get_h_mesh_vertices_32,
-    # get_h_mesh_faces_32,
     get_vertices_32,
     get_faces_32,
     crop_mesh,
@@ -80,15 +73,11 @@ export
     expand!,
     returnNext,
     addCacheItem!,
-    # empty!,
-    # isempty,
-    # length,
 
     # tree_types.jl
     bin_BB_Tree,
     TT_Cache,
     update_TT_Cache!,
-    # length,
     is_leaf,
     is_not_leaf,
     treeDepth,
