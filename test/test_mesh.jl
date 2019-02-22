@@ -1,4 +1,17 @@
 
+eM = eMesh{Tri,Tet}()
+push!(eM.point, SVector{3,Float64}(NaN, NaN, NaN))
+@test_throws ErrorException verify_mesh(eM)
+push!(eM.ϵ, NaN)
+
+append!(eM, output_eMesh_half_plane())
+mesh_remove_unused_points!(eM)
+@test length(eM.point) == 4
+
+append!(eM, output_eMesh_half_plane())
+mesh_inplace_rekey!(eM)
+@test length(eM.point) == 4
+
 two = 2.0
 @testset "half_plane" begin
     eM_hp_f = output_eMesh_half_plane(two, false)

@@ -80,6 +80,38 @@ function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
     return nothing
 end
 
+### VERIFICATION
+
+function verify_mesh(eM::eMesh{T1,T2}) where {T1,T2}
+    verify_mesh_triangles(eM)
+    verify_mesh_tets(eM)
+    return nothing
+end
+
+verify_mesh_tets(eM::eMesh{T1,Nothing}) where {T1} = nothing
+function verify_mesh_tets(eM::eMesh{T1,Tet}) where {T1}
+    length_tet = n_tet(eM)
+    length_point = n_point(eM)
+    length_ϵ = length(eM.ϵ)
+    for k = 1:length_tet
+        iΔ = eM.tet[k]
+        all(1 .<= iΔ .<= length_point) || error("index in tet with sides $(iΔ) not within points")
+    end
+    (length_ϵ == length_point) || error("number of points not equal to number or ϵ")
+    return nothing
+end
+
+verify_mesh_triangles(eM::eMesh{Nothing,T2}) where {T2} = nothing
+function verify_mesh_triangles(eM::eMesh{Tri,T2}) where {T2}
+    length_tri = n_tri(eM)
+    length_point = n_point(eM)
+    for k = 1:length_tri
+        iΔ = eM.tri[k]
+        all(1 .<= iΔ .<= length_point) || error("index in triangle with sides $(iΔ) not within points")
+    end
+    return nothing
+end
+
 ### MESH MANIPULATION
 
 function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {T1,T2}
@@ -174,6 +206,7 @@ function mesh_inplace_rekey!(e_mesh::eMesh{T1,T2}) where {T1,T2}
         new_key = inplace_rekey(e_mesh.point, min_side_length)
         rekey!(e_mesh.tri, new_key)
         rekey!(e_mesh.tet, new_key)
+        mesh_remove_unused_points!(e_mesh)
         return new_key
     end
     return nothing
@@ -186,11 +219,12 @@ function mesh_remove_unused_points!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     new_key = cumsum(truth_vector)
     rekey!(e_mesh.tri, new_key)
     rekey!(e_mesh.tet, new_key)
-    point_new = e_mesh.point[findall(truth_vector)]
+    ind_truth = findall(truth_vector)
+    point_new = e_mesh.point[ind_truth]
     empty!(e_mesh.point)
     append!(e_mesh.point, point_new)
     if T2 != Nothing
-        ϵ_new = e_mesh.ϵ[findall(truth_vector)]
+        ϵ_new = e_mesh.ϵ[ind_truth]
         empty!(e_mesh.ϵ)
         append!(e_mesh.ϵ, ϵ_new)
     end

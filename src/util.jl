@@ -15,6 +15,10 @@ end
 
 ### calc_min_max
 calc_min_max(a::AABB) = a.c - a.e, a.c + a.e
+function calc_min_max(a::OBB)
+    δ = abs.(a.R) * a.e
+    return a.c - δ, a.c + δ
+end
 function calc_min_max(point::Vector{SVector{3,T}}) where {T}
     min_val = SVector{3,Float64}(+Inf, +Inf, +Inf)
     max_val = SVector{3,Float64}(-Inf, -Inf, -Inf)

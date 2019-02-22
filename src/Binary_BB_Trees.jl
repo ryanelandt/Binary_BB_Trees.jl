@@ -49,6 +49,7 @@ export
     get_tet,
     get_point,
     scale!,
+    verify_mesh,
     dh_transform_mesh!,
     invert!,
     mesh_inplace_rekey!,
