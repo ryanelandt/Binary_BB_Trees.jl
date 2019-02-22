@@ -2,7 +2,7 @@
 function top_down(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}) where {N}
     (N == 3) || (N == 4) || error("N is $N. N should be 3 for triangle mesh or 4 for tetrahedral mesh")
 
-    sv_aabb = [svSvToAABB(point[k]) for k = vec_tri_tet]
+    sv_aabb = [calc_aabb(point[k]) for k = vec_tri_tet]
     bb_aabb = [bin_BB_Tree(k, sv_aabb[k]) for k = 1:length(sv_aabb)]
     return recursive_top_down(bb_aabb)
 end
@@ -10,7 +10,7 @@ end
 function bin_BB_Tree_Bound(bb_aabb)
     box = bb_aabb[1].box
     for k = 2:length(bb_aabb)
-        box = combine_BB(box, bb_aabb[k].box)
+        box = AABB(box, bb_aabb[k].box)
     end
     return box
 end
