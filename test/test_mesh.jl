@@ -22,6 +22,7 @@
     eM = as_tri_eMesh(output_eMesh_box())
     @test area(crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, +1.0, 0.0))) ≈ 12.0
     @test area(crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, -1.0, 0.0))) ≈ 12.0
+    @test volume(output_eMesh_box()) ≈ 8.0
 end
 
 two = 2.0
