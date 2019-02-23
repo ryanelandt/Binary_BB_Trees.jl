@@ -138,38 +138,50 @@ function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})  # TODO: ad
     dh_transform_mesh!(e_mesh, basic_dh(sv_33))
 end
 
-function crop_mesh(e_mesh::eMesh{Tri,Nothing}, n̂::SVector{3,Float64}, d::Float64, is_hard::Bool=false) # where {T2}
-    Base.depwarn("This function is depricated, call crop_mesh(e_mesh, plane::SMatrix{1,4,Float64,4}) instead.", :crop_mesh)
-    return crop_mesh(e_mesh, SMatrix{4,1,Float64,4}(n̂..., d), is_hard)
+struct PointObj
+    p::SVector{3,Float64}
+    w::Float64
+    b::Bool
+    k::Int64
 end
 
-function crop_mesh(e_mesh::eMesh{Tri,Nothing}, plane::SMatrix{1,4,Float64,4}, is_hard::Bool=false) # where {T2}
-    n̂ = unPad(plane)
-    d = plane[4]
-    e_mesh = deepcopy(e_mesh)
-    mesh_repair!(e_mesh)
-    if !isempty(e_mesh)
-        p = get_point(e_mesh)
-        i = get_tri(e_mesh)
-        n_faces_orig = length(i)
-        bool_delete = falses(n_faces_orig)
-        area_ = [area(p[k]) for k = i]
-        min_area = minimum(area_)
-        min_area_tol = min_area / 100
-        for k = 1:n_faces_orig
-            recursivly_rotate!(i, p, bool_delete, k, n̂, d, 1, is_hard)
+function crop_mesh(eM::eMesh{Tri,Nothing}, plane::SMatrix{1,4,Float64,4})
+    function add_cropped_triangle!(eM_new::eMesh{Tri,Nothing}, iΔ::SVector{3,Int64})
+        function plane_dot_2(eM_new::eMesh{Tri,Nothing}, plane::SMatrix{1,4,Float64,4}, k::Int64)
+            p = get_point(eM_new)[k]
+            w = dot(plane, onePad(p))
+            b = -1.0e-12 < w
+            return PointObj(p, w, b, k)
         end
-        area_ = [area(p[k]) for k = i]
-        i_small = findall(area_ .<= min_area_tol)
-        i_delete = findall(bool_delete)
-        append!(i_delete, i_small)
-        i_delete = sort(unique(i_delete))
-        deleteat!(i, i_delete)
-        e_mesh_new = eMesh(p, i, nothing, nothing)
-        mesh_repair!(e_mesh_new)
-        return e_mesh_new
+
+        o1 = plane_dot_2(eM_new, plane, iΔ[1])
+        o2 = plane_dot_2(eM_new, plane, iΔ[2])
+        o3 = plane_dot_2(eM_new, plane, iΔ[3])
+        s_bool = o1.b + o2.b + o3.b
+        (s_bool == 3) && (push!(eM_new.tri, iΔ))  # all entire triangle
+        ((s_bool == 0) || (s_bool == 3)) && (return nothing)  # exit function
+        (o1.b == o2.b) && ((o1, o2, o3) = (o2, o3, o1))  # put 1 and 2 on opposite sides
+        (o2.b == o3.b) && ((o1, o2, o3) = (o3, o1, o2))  # put 2 and 3 on opposite sides
+        (o1.b == o2.b) || (o2.b == o3.b) && error("something is wrong")  # sanity check
+        push!(eM_new.point, weightPoly(o1.p, o2.p, o1.w, o2.w))
+        i12 = length(get_point(eM_new))
+        push!(eM_new.point, weightPoly(o2.p, o3.p, o2.w, o3.w))
+        i23 = length(get_point(eM_new))
+        if o2.b  # add top of triangle
+            push!(eM_new.tri, SVector{3,Int64}(i12, o2.k, i23))
+        else  # add bottom quadralateral
+            push!(eM_new.tri, SVector{3,Int64}(o1.k, i12, i23))
+            push!(eM_new.tri, SVector{3,Int64}(o1.k, i23, o3.k))
+        end
     end
-    return eMesh{Tri,Nothing}()
+
+    eM_new = eMesh{Tri,Nothing}()
+    append!(eM_new.point, eM.point)
+    for iΔ = eM.tri
+        add_cropped_triangle!(eM_new, iΔ)
+    end
+    mesh_repair!(eM_new)
+    return eM_new
 end
 
 function invert!(eM::eMesh{Tri,Nothing})
@@ -180,6 +192,13 @@ function invert!(eM::eMesh{Tri,Nothing})
 end
 
 ### MESH REPAIR
+function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
+    mesh_remove_unused_points!(e_mesh)
+    mesh_inplace_rekey!(e_mesh)
+    mesh_remove_unused_points!(e_mesh)
+    return delete_triangles!(e_mesh)
+end
+
 rekey!(v::Nothing, i::Vector{Int64}) = nothing
 rekey!(v::Vector{SVector{N,Int64}}, i::Vector{Int64}) where {N} = replace!(x -> i[x], v)
 
@@ -285,34 +304,6 @@ function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
         end
     end
 end
-# function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
-#     sort!(e_mesh.tri, by = x -> sort(x))
-#     n_tri_delete = 0
-#     for k = n_tri(e_mesh):-1:2
-#         if k <= n_tri(e_mesh)
-#             vert_2 = e_mesh.tri[k]
-#             vert_1 = e_mesh.tri[k - 1]
-#             if sort(vert_1) == sort(vert_2)  # share same 3 indices
-#                 n̂_2 = triangleNormal(e_mesh.point[vert_2])
-#                 n̂_1 = triangleNormal(e_mesh.point[vert_1])
-#                 if n̂_2 ≈ n̂_1  # triangle is a duplicate (normals point in same direction)
-#                     deleteat!(e_mesh.tri, k - 1)  # delete this triangle
-#                     n_tri_delete += 1
-#                 elseif n̂_2 ≈ -n̂_1  # triangles oppose each other (normals point in different directions)
-#                     is_check_this_k = false
-#                     deleteat!(e_mesh.tri, k - 1)  # delete this triangle
-#                     deleteat!(e_mesh.tri, k - 1)  # delete this triangle
-#                     n_tri_delete += 2
-#                 else
-#                     println("n̂_1: ", n̂_1)
-#                     println("n̂_2: ", n̂_2)
-#                     error("something is wrong")
-#                 end
-#             end
-#         end
-#     end
-#     return n_tri_delete
-# end
 
 function sub_div_mesh(eM_ico::eMesh{Tri,T2}, n_div::Int64) where {T2}
     n_end(n::Int64) = div((n + 1) * n, 2)
@@ -373,13 +364,6 @@ function sub_div_mesh(eM_ico::eMesh{Tri,T2}, n_div::Int64) where {T2}
     end
     mesh_repair!(eM_ico_div)
     return eM_ico_div
-end
-
-function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
-    mesh_remove_unused_points!(e_mesh)
-    mesh_inplace_rekey!(e_mesh)
-    mesh_remove_unused_points!(e_mesh)
-    return delete_triangles!(e_mesh)
 end
 
 ### BASIC SHAPES
@@ -548,25 +532,3 @@ function output_eMesh_hole(rⁱ::Float64, rᵒ::Float64, h::Float64, tot_slice::
     end
     return eM_cone
 end
-
-# function eMesh{Tri,Nothing}()
-#     point = Vector{SVector{3,Float64}}()
-#     tri = Vector{SVector{3,Int64}}()
-#     return eMesh(point, tri, nothing, nothing)
-# end
-
-# function eMesh{Nothing,Tet}()
-#     point = Vector{SVector{3,Float64}}()
-#     tri = nothing
-#     tet = Vector{SVector{4,Int64}}()
-#     ϵ = Vector{Float64}()
-#     return eMesh(point, nothing, tet, ϵ)
-# end
-
-# function eMesh{Tri,Tet}()
-#     point = Vector{SVector{3,Float64}}()
-#     tri = Vector{SVector{3,Int64}}()
-#     tet = Vector{SVector{4,Int64}}()
-#     ϵ = Vector{Float64}()
-#     return eMesh(point, tri, tet, ϵ)
-# end

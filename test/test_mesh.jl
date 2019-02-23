@@ -20,14 +20,9 @@
     @test isempty(eM)
 
     eM = as_tri_eMesh(output_eMesh_box())
-    eM = crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, 1.0, 0.0))
-    @test area(eM) == 12.0
-
-    eM = as_tri_eMesh(output_eMesh_box())
-    eM = crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, -1.0, 0.0))
-    @test area(eM) == 12.0
+    @test area(crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, +1.0, 0.0))) ≈ 12.0
+    @test area(crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, -1.0, 0.0))) ≈ 12.0
 end
-
 
 two = 2.0
 @testset "half_plane" begin
