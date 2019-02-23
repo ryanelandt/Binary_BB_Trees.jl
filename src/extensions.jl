@@ -6,3 +6,11 @@ function NumericalTricks.volume(eM::eMesh{T1,Tet}) where {T1}
     end
     return vol
 end
+
+function NumericalTricks.area(eM::eMesh{Tri,T2}) where {T2}
+    area_cum = 0.0
+    for k = 1:n_tri(eM)
+        area_cum += area(vertex_pos_for_tri_ind(eM, k))
+    end
+    return area_cum
+end

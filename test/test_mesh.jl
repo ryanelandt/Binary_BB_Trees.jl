@@ -1,16 +1,33 @@
 
-eM = eMesh{Tri,Tet}()
-push!(eM.point, SVector{3,Float64}(NaN, NaN, NaN))
-@test_throws ErrorException verify_mesh(eM)
-push!(eM.ϵ, NaN)
+@testset "mesh" begin
+    eM = eMesh{Tri,Tet}()
+    push!(eM.point, SVector{3,Float64}(NaN, NaN, NaN))
+    @test_throws ErrorException verify_mesh(eM)
+    push!(eM.ϵ, NaN)
 
-append!(eM, output_eMesh_half_plane())
-mesh_remove_unused_points!(eM)
-@test length(eM.point) == 4
+    append!(eM, output_eMesh_half_plane())
+    mesh_remove_unused_points!(eM)
+    @test length(eM.point) == 4
 
-append!(eM, output_eMesh_half_plane())
-mesh_inplace_rekey!(eM)
-@test length(eM.point) == 4
+    append!(eM, output_eMesh_half_plane())
+    mesh_inplace_rekey!(eM)
+    @test length(eM.point) == 4
+
+    @test !isempty(eM)
+    @test_throws MethodError empty(eM)
+    eM = as_tri_eMesh(eM)
+    empty!(eM)
+    @test isempty(eM)
+
+    eM = as_tri_eMesh(output_eMesh_box())
+    eM = crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, 1.0, 0.0))
+    @test area(eM) == 12.0
+
+    eM = as_tri_eMesh(output_eMesh_box())
+    eM = crop_mesh(eM, SMatrix{1,4,Float64,4}(0.0, 0.0, -1.0, 0.0))
+    @test area(eM) == 12.0
+end
+
 
 two = 2.0
 @testset "half_plane" begin
@@ -32,7 +49,6 @@ end
 
 @testset "sphere" begin
     for k = 1:4
-        println("k: ", k)
         eM_sphere = output_eMesh_sphere(two, k)
         n_zero = 0
         @test n_tri(eM_sphere) == n_tet(eM_sphere) == 20 * k^2
@@ -45,7 +61,7 @@ end
             end
         end
         @test n_zero == 1
-        println("n_point(eM_sphere): ", n_point(eM_sphere) )
+        # println("n_point(eM_sphere): ", n_point(eM_sphere) )
         (k == 1) && @test n_point(eM_sphere) == 1 + 12
         (k == 2) && @test n_point(eM_sphere) == 1 + 12 + 30  # each edge bisected
         (k == 3) && @test n_point(eM_sphere) == 1 + 12 + 2 * 30 + 20  # each edge bisected + point in center

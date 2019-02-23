@@ -61,7 +61,17 @@ function Base.empty!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     return nothing
 end
 
-Base.isempty(e_mesh::eMesh{T1,T2}) where {T1,T2} = isempty(e_mesh.point)
+function Base.isempty(e_mesh::eMesh{T1,T2}) where {T1,T2}
+    is_emp = isempty(e_mesh.point)
+    if T1 == Tri
+        is_emp = is_emp || isempty(e_mesh.tri)
+    end
+    if T2 == Tet
+        is_emp = is_emp || isempty(e_mesh.tet)
+        is_emp = is_emp || isempty(e_mesh.ϵ)
+    end
+    return is_emp
+end
 
 function Base.append!(eM_1::eMesh{T1,T2}, eM_2::eMesh{T1,T2}) where {T1,T2}
     n_1 = n_point(eM_1)
@@ -138,25 +148,28 @@ function crop_mesh(e_mesh::eMesh{Tri,Nothing}, plane::SMatrix{1,4,Float64,4}, is
     d = plane[4]
     e_mesh = deepcopy(e_mesh)
     mesh_repair!(e_mesh)
-    p = get_point(e_mesh)
-    i = get_tri(e_mesh)
-    n_faces_orig = length(i)
-    bool_delete = falses(n_faces_orig)
-    area_ = [area(p[k]) for k = i]
-    min_area = minimum(area_)
-    min_area_tol = min_area / 100
-    for k = 1:n_faces_orig
-        recursivly_rotate!(i, p, bool_delete, k, n̂, d, 1, is_hard)
+    if !isempty(e_mesh)
+        p = get_point(e_mesh)
+        i = get_tri(e_mesh)
+        n_faces_orig = length(i)
+        bool_delete = falses(n_faces_orig)
+        area_ = [area(p[k]) for k = i]
+        min_area = minimum(area_)
+        min_area_tol = min_area / 100
+        for k = 1:n_faces_orig
+            recursivly_rotate!(i, p, bool_delete, k, n̂, d, 1, is_hard)
+        end
+        area_ = [area(p[k]) for k = i]
+        i_small = findall(area_ .<= min_area_tol)
+        i_delete = findall(bool_delete)
+        append!(i_delete, i_small)
+        i_delete = sort(unique(i_delete))
+        deleteat!(i, i_delete)
+        e_mesh_new = eMesh(p, i, nothing, nothing)
+        mesh_repair!(e_mesh_new)
+        return e_mesh_new
     end
-    area_ = [area(p[k]) for k = i]
-    i_small = findall(area_ .<= min_area_tol)
-    i_delete = findall(bool_delete)
-    append!(i_delete, i_small)
-    i_delete = sort(unique(i_delete))
-    deleteat!(i, i_delete)
-    e_mesh_new = eMesh(p, i, nothing, nothing)
-    mesh_repair!(e_mesh_new)
-    return e_mesh_new
+    return eMesh{Tri,Nothing}()
 end
 
 function invert!(eM::eMesh{Tri,Nothing})
@@ -233,33 +246,73 @@ end
 
 delete_triangles!(e_mesh::eMesh{Nothing,T2}) where {T2} = -9999
 function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
-    sort!(e_mesh.tri, by = x -> sort(x))
-    n_tri_delete = 0
-    for k = n_tri(e_mesh):-1:2
-        if k <= n_tri(e_mesh)
-            vert_2 = e_mesh.tri[k]
-            vert_1 = e_mesh.tri[k - 1]
-            if sort(vert_1) == sort(vert_2)  # share same 3 indices
-                n̂_2 = triangleNormal(e_mesh.point[vert_2])
-                n̂_1 = triangleNormal(e_mesh.point[vert_1])
-                if n̂_2 ≈ n̂_1  # triangle is a duplicate (normals point in same direction)
-                    deleteat!(e_mesh.tri, k - 1)  # delete this triangle
-                    n_tri_delete += 1
-                elseif n̂_2 ≈ -n̂_1  # triangles oppose each other (normals point in different directions)
-                    is_check_this_k = false
-                    deleteat!(e_mesh.tri, k - 1)  # delete this triangle
-                    deleteat!(e_mesh.tri, k - 1)  # delete this triangle
-                    n_tri_delete += 2
-                else
-                    println("n̂_1: ", n̂_1)
-                    println("n̂_2: ", n̂_2)
-                    error("something is wrong")
-                end
-            end
+    ### make the first index lowest
+    for k = 1:n_tri(e_mesh)
+        iΔ = e_mesh.tri[k]
+        min_index = minimum(iΔ)
+        (min_index == iΔ[1]) || (iΔ = SVector(iΔ[3], iΔ[1], iΔ[2]))
+        (min_index == iΔ[1]) || (iΔ = SVector(iΔ[3], iΔ[1], iΔ[2]))
+    end
+
+    # println("e_mesh.tri: ", e_mesh.tri)
+
+    ### create a dictionary of key repition counts
+    key_type = Vector{Tuple{Int64,SVector{3,Int64}}}
+    dict_ind = Dict{SVector{3,Int64},key_type}()
+    for k = 1:n_tri(e_mesh)
+        iΔ = e_mesh.tri[k]
+        sort_iΔ = sort(iΔ)
+        !haskey(dict_ind, sort_iΔ) && (dict_ind[sort_iΔ] = key_type() )
+        push!(dict_ind[sort_iΔ], (k, iΔ))
+    end
+
+    # println("dict_ind: ", dict_ind)
+
+    ### delete duplicates
+    i_delete = Vector{Int64}()
+    for (key_k, val_k) = dict_ind
+        # println("val_k: ", val_k)
+        length_val_k = length(val_k)
+        if length_val_k == 2
+            val_k1 = val_k[1]
+            val_k2 = val_k[2]
+            (val_k1[2] == val_k2[2]) && error("non-opposing triangles")
+            push!(i_delete, val_k1[1], val_k2[1])
+        elseif 3 <= length_val_k
+            # println("length_key_k: ", length_val_k)
+            # println("val_k: ", val_k)
+            error("something is wrong")
         end
     end
-    return n_tri_delete
 end
+# function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
+#     sort!(e_mesh.tri, by = x -> sort(x))
+#     n_tri_delete = 0
+#     for k = n_tri(e_mesh):-1:2
+#         if k <= n_tri(e_mesh)
+#             vert_2 = e_mesh.tri[k]
+#             vert_1 = e_mesh.tri[k - 1]
+#             if sort(vert_1) == sort(vert_2)  # share same 3 indices
+#                 n̂_2 = triangleNormal(e_mesh.point[vert_2])
+#                 n̂_1 = triangleNormal(e_mesh.point[vert_1])
+#                 if n̂_2 ≈ n̂_1  # triangle is a duplicate (normals point in same direction)
+#                     deleteat!(e_mesh.tri, k - 1)  # delete this triangle
+#                     n_tri_delete += 1
+#                 elseif n̂_2 ≈ -n̂_1  # triangles oppose each other (normals point in different directions)
+#                     is_check_this_k = false
+#                     deleteat!(e_mesh.tri, k - 1)  # delete this triangle
+#                     deleteat!(e_mesh.tri, k - 1)  # delete this triangle
+#                     n_tri_delete += 2
+#                 else
+#                     println("n̂_1: ", n̂_1)
+#                     println("n̂_2: ", n̂_2)
+#                     error("something is wrong")
+#                 end
+#             end
+#         end
+#     end
+#     return n_tri_delete
+# end
 
 function sub_div_mesh(eM_ico::eMesh{Tri,T2}, n_div::Int64) where {T2}
     n_end(n::Int64) = div((n + 1) * n, 2)
