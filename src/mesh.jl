@@ -7,6 +7,7 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
     tri::Union{Nothing,Vector{SVector{3,Int64}}}
     tet::Union{Nothing,Vector{SVector{4,Int64}}}
     ϵ::Union{Nothing,Vector{Float64}}
+    # ∇ϵ::Union{Nothing,Vector{SVector{3,Float64}}}
     function eMesh( point::Vector{SVector{3,Float64}},
                     tri::Union{Nothing,Vector{SVector{3,Int64}}},
                     tet::Union{Nothing,Vector{SVector{4,Int64}}}=nothing,
