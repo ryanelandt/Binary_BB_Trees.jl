@@ -104,8 +104,9 @@ export
     obj_from_point_sequence,
 
     # mesh_create_swept.jl
-    make_swept_mesh_open,
-    make_swept_mesh_closed,
+    create_swept_mesh,
+    # make_swept_mesh_open,
+    # make_swept_mesh_closed,
     f_swept_helix,
     f_swept_circle
 
