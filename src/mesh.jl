@@ -143,6 +143,8 @@ function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {
 end
 
 function scale!(e_mesh::eMesh, r::Union{Float64,SVector{3,Float64}})  # TODO: add this functionality to basic_dh constructor
+    Base.depwarn("scale! is depricated use eMesh_transform! instead.", :scale!)
+
     r = ones(SVector{3,Float64}) .* r
     sv_33 = SMatrix{3,3,Float64,9}(r[1], 0.0, 0.0, 0.0, r[2], 0.0, 0.0, 0.0, r[3])
     dh_transform_mesh!(e_mesh, basic_dh(sv_33))
@@ -524,8 +526,11 @@ function output_eMesh_box(r::Union{Float64,SVector{3,Float64}}=1.0, c::SVector{3
     ]
     tri, tet, ϵ = output_box_ind()
     e_mesh = eMesh(point, tri, tet, ϵ)
-    scale!(e_mesh, r)
-    dh_transform_mesh!(e_mesh, basic_dh(c))
+    # scale!(e_mesh, r)
+    r = r .* ones(SVector{3,Float64})
+    eMesh_transform!(e_mesh, SMatrix{3,3,Float64,9}(r[1], 0, 0, 0, r[2], 0, 0, 0, r[3]))
+    eMesh_transform!(e_mesh, c)
+    # dh_transform_mesh!(e_mesh, basic_dh(c))
     return e_mesh
 end
 
