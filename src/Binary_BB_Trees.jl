@@ -50,6 +50,7 @@ export
     get_point,
     scale!,
     verify_mesh,
+    eMesh_transform!,
     dh_transform_mesh!,
     invert!,
     mesh_inplace_rekey!,

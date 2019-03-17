@@ -125,7 +125,16 @@ end
 
 ### MESH MANIPULATION
 
+function eMesh_transform!(e_mesh::eMesh{T1,T2}, extra_args...) where {T1,T2}
+    dh = basic_dh(extra_args...)
+    point = e_mesh.point
+    for k = 1:n_point(e_mesh)
+        point[k] = dh_vector_mul(dh, point[k])
+    end
+end
+
 function dh_transform_mesh!(e_mesh::eMesh{T1,T2}, dh::basic_dh{Float64}) where {T1,T2}
+    Base.depwarn("dh_transform_mesh! is depricated use eMesh_transform! instead.", :dh_transform_mesh!)
     point = e_mesh.point
     for k = 1:n_point(e_mesh)
         point[k] = dh_vector_mul(dh, point[k])
