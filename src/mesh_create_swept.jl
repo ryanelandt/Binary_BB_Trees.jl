@@ -5,7 +5,16 @@ function f_swept_circle(r::Float64, θ::Float64)
     return r * n̂_1, n̂_1, n̂_2
 end
 
+function f_swept_triv(θ::Float64)
+	n̂_1 = SVector(1.0, 0.0, 0.0)
+	n̂_2 = SVector(0.0, 1.0, 0.0)
+	return n̂_2 * θ, n̂_1, n̂_2
+end
+
 function add_rot_sym_segment!(eM, fun_gen, θ, ϕ, rad, is_open::NTuple{2,Bool})
+    # x̂ is in the "radial" direction
+    # ŷ is along the path
+
     p1, x̂1, ŷ1 = fun_gen(θ[1])
     p2, x̂2, ŷ2 = fun_gen(θ[2])
     p3 = (p1 + p2) * 0.5
@@ -18,8 +27,8 @@ function add_rot_sym_segment!(eM, fun_gen, θ, ϕ, rad, is_open::NTuple{2,Bool})
     i2 = SVector{4,Int64}(3,2,5,7) + n_offset
     i3 = SVector{4,Int64}(3,4,6,7) + n_offset
     i4 = SVector{4,Int64}(4,3,5,7) + n_offset
-    i5 = SVector{3,Int64}(4,7,6) + n_offset
-    i6 = SVector{3,Int64}(4,5,7) + n_offset
+    i5 = SVector{3,Int64}(4,6,7) + n_offset
+    i6 = SVector{3,Int64}(4,7,5) + n_offset
     append!(eM.point, [p1, p2, p3, p4, p5, p6, p7])
     append!(eM.tri, [i5, i6])
     append!(eM.tet, [i1, i2, i3, i4])
@@ -27,11 +36,11 @@ function add_rot_sym_segment!(eM, fun_gen, θ, ϕ, rad, is_open::NTuple{2,Bool})
     ϵ[1:3] .= -1.0
     if is_open[1]
         ϵ[1] = 0.0
-        push!(eM.tri, SVector{3,Int64}(1,4,6) + n_offset)
+        push!(eM.tri, SVector{3,Int64}(1,6,4) + n_offset)
     end
     if is_open[2]
         ϵ[2] = 0.0
-        push!(eM.tri, SVector{3,Int64}(2,7,5) + n_offset)
+        push!(eM.tri, SVector{3,Int64}(2,5,7) + n_offset)
     end
     append!(eM.ϵ, ϵ)
     for k = 0:3  # sanity check
@@ -40,14 +49,15 @@ function add_rot_sym_segment!(eM, fun_gen, θ, ϕ, rad, is_open::NTuple{2,Bool})
     return nothing
 end
 
-function create_swept_mesh(fun_gen_2, lr, rad, num_ϕ=4, is_open::Bool=true)
+function create_swept_mesh(fun_gen_2, lr, rad, num_ϕ=4, is_open::Bool=true; rot_half::Bool=true)
     eM = eMesh{Tri,Tet}()
     Δ_ϕ = 2 * pi / num_ϕ
+    rad = rad / cos(Δ_ϕ / 2)
     n_θ = length(lr) - 1
     for k_θ = 1:n_θ
         θ = (lr[k_θ], lr[k_θ + 1])
         for k_ϕ = 1:num_ϕ
-            ϕ_0 = Δ_ϕ * (k_ϕ  - 0.5)
+            ϕ_0 = Δ_ϕ * (k_ϕ  - 0.5 * rot_half)
             ϕ_1 = ϕ_0 + Δ_ϕ
             ϕ = (ϕ_0, ϕ_1)
             if is_open

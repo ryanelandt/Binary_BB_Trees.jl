@@ -108,8 +108,9 @@ export
     create_swept_mesh,
     # make_swept_mesh_open,
     # make_swept_mesh_closed,
-    f_swept_helix,
-    f_swept_circle
+    # f_swept_helix,
+    f_swept_circle,
+    f_swept_triv
 
     # extensions.jl
 

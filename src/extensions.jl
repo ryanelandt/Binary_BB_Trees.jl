@@ -1,4 +1,5 @@
 
+NumericalTricks.volume(eM::eMesh{T1,Nothing}) where {T1} = errorr("meshes without tets have no volume")
 function NumericalTricks.volume(eM::eMesh{T1,Tet}) where {T1}
     vol = 0.0
     for k = 1:n_tet(eM)
