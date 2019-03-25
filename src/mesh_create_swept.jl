@@ -6,7 +6,7 @@ function f_swept_circle(r::Float64, θ::Float64)
 end
 
 function f_swept_triv(θ::Float64)
-	n̂_1 = SVector(1.0, 0.0, 0.0)
+	n̂_1 = SVector(0.0, 0.0, -1.0)
 	n̂_2 = SVector(0.0, 1.0, 0.0)
 	return n̂_2 * θ, n̂_1, n̂_2
 end
