@@ -211,6 +211,21 @@ function mesh_repair!(e_mesh::eMesh{T1,T2}) where {T1,T2}
     return delete_triangles!(e_mesh)
 end
 
+function remove_degenerate!(eM::eMesh)
+	area_or_vol(v::SVector{3,SVector{3,Float64}}) = area(v)
+	area_or_vol(v::SVector{4,SVector{3,Float64}}) = volume(v)
+
+	tol = 1.0e-6
+	for vec_ind = (eM.tet, eM.tri)
+		if vec_ind != nothing
+			v = [area_or_vol(eM.point[vec_ind[k]]) for k = 1:length(vec_ind)]
+			max_v = maximum(v)
+			i_bad = findall(v .< max_v * tol)
+			deleteat!(vec_ind, i_bad)
+		end
+	end
+end
+
 rekey!(v::Nothing, i::Vector{Int64}) = nothing
 rekey!(v::Vector{SVector{N,Int64}}, i::Vector{Int64}) where {N} = replace!(x -> i[x], v)
 

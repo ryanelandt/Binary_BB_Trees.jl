@@ -18,10 +18,10 @@ function add_rot_sym_segment!(eM, fun_gen, θ, ϕ, rad, is_open::NTuple{2,Bool})
     p1, x̂1, ŷ1 = fun_gen(θ[1])
     p2, x̂2, ŷ2 = fun_gen(θ[2])
     p3 = (p1 + p2) * 0.5
-    p4 = p1 + AngleAxis(ϕ[1], ŷ1...) * x̂1 * rad
-    p6 = p1 + AngleAxis(ϕ[2], ŷ1...) * x̂1 * rad
-    p5 = p2 + AngleAxis(ϕ[1], ŷ2...) * x̂2 * rad
-    p7 = p2 + AngleAxis(ϕ[2], ŷ2...) * x̂2 * rad
+    p4 = p1 + AngleAxis(ϕ[1], ŷ1...) * x̂1 * rad[1]
+    p6 = p1 + AngleAxis(ϕ[2], ŷ1...) * x̂1 * rad[1]
+    p5 = p2 + AngleAxis(ϕ[1], ŷ2...) * x̂2 * rad[2]
+    p7 = p2 + AngleAxis(ϕ[2], ŷ2...) * x̂2 * rad[2]
     n_offset = length(eM.point)
     i1 = SVector{4,Int64}(1,3,4,6) + n_offset
     i2 = SVector{4,Int64}(3,2,5,7) + n_offset
@@ -43,19 +43,26 @@ function add_rot_sym_segment!(eM, fun_gen, θ, ϕ, rad, is_open::NTuple{2,Bool})
         push!(eM.tri, SVector{3,Int64}(2,5,7) + n_offset)
     end
     append!(eM.ϵ, ϵ)
-    for k = 0:3  # sanity check
-        (0.0 < volume(eM.point[eM.tet[end - k]])) || error("inverted element")
-    end
+    # for k = 0:3  # sanity check
+    #     (0.0 < volume(eM.point[eM.tet[end - k]])) || error("inverted element")
+    # end
     return nothing
 end
 
 function create_swept_mesh(fun_gen_2, lr, rad, num_ϕ=4, is_open::Bool=true; rot_half::Bool=true)
+	l_lr = length(lr)
+	if isa(rad, Float64)
+		rad = zeros(l_lr) .+ rad
+	else
+		(l_lr == length(rad)) || error("the length of lr and length of rad must be the same")
+	end
     eM = eMesh{Tri,Tet}()
     Δ_ϕ = 2 * pi / num_ϕ
-    rad = rad / cos(Δ_ϕ / 2)
-    n_θ = length(lr) - 1
+    rad = rad ./ cos(Δ_ϕ / 2)
+	n_θ = l_lr - 1
     for k_θ = 1:n_θ
         θ = (lr[k_θ], lr[k_θ + 1])
+		rad_k = (rad[k_θ], rad[k_θ + 1])
         for k_ϕ = 1:num_ϕ
             ϕ_0 = Δ_ϕ * (k_ϕ  - 0.5 * rot_half)
             ϕ_1 = ϕ_0 + Δ_ϕ
@@ -65,12 +72,14 @@ function create_swept_mesh(fun_gen_2, lr, rad, num_ϕ=4, is_open::Bool=true; rot
             else
                 is_open_ = (false, false)
             end
-            add_rot_sym_segment!(eM, fun_gen_2, θ, ϕ, rad, is_open_)
+            add_rot_sym_segment!(eM, fun_gen_2, θ, ϕ, rad_k, is_open_)
         end
     end
+	remove_degenerate!(eM)
     mesh_repair!(eM)
     return eM
 end
+
 
 
 # function output_side_points(v1::Float64, the_fun::Function, width::Float64)
