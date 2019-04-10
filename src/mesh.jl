@@ -17,7 +17,8 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
         if T2_ == Tet
             @assert(isa(ϵ, Vector{Float64}))
             @assert(length(ϵ) == length(point), "length(ϵ) = $(length(ϵ)) but length(point) = $(length(point))")
-            (length(ϵ) != 0) && @assert(maximum(ϵ) == 0.0, "strain must be zero on the surface of the volume mesh")
+            (length(ϵ) != 0) && @assert(0.0 < maximum(ϵ), "normalized penetration extent must be non-negative")
+            (length(ϵ) != 0) && @assert(minimum(ϵ) == 0.0, "normalized penetration extent must be zero on the surface of the volume mesh")
             for k = 1:length(tet)
                 (0.0 < volume(point[tet[k]])) || error("inverted tetrahedron")
             end
@@ -299,8 +300,6 @@ function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
         (min_index == iΔ[1]) || (iΔ = SVector(iΔ[3], iΔ[1], iΔ[2]))
     end
 
-    # println("e_mesh.tri: ", e_mesh.tri)
-
     ### create a dictionary of key repition counts
     key_type = Vector{Tuple{Int64,SVector{3,Int64}}}
     dict_ind = Dict{SVector{3,Int64},key_type}()
@@ -311,12 +310,9 @@ function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
         push!(dict_ind[sort_iΔ], (k, iΔ))
     end
 
-    # println("dict_ind: ", dict_ind)
-
     ### delete duplicates
     i_delete = Vector{Int64}()
     for (key_k, val_k) = dict_ind
-        # println("val_k: ", val_k)
         length_val_k = length(val_k)
         if length_val_k == 2
             val_k1 = val_k[1]
@@ -324,8 +320,6 @@ function delete_triangles!(e_mesh::eMesh{Tri,T2}) where {T2}
             (val_k1[2] == val_k2[2]) && error("non-opposing triangles")
             push!(i_delete, val_k1[1], val_k2[1])
         elseif 3 <= length_val_k
-            # println("length_key_k: ", length_val_k)
-            # println("val_k: ", val_k)
             error("something is wrong")
         end
     end
@@ -403,7 +397,7 @@ function output_eMesh_half_plane(plane_w::Float64=1.0, is_include_vis_sides::Boo
         tri = [SVector{3,Int64}(1,2,3)]
     end
     tet = [SVector{4,Int64}(4,1,2,3)]
-    ϵ = [0.0, 0.0, 0.0, -plane_w]
+    ϵ = [0.0, 0.0, 0.0, plane_w]
     return eMesh(point, tri, tet, ϵ)
 end
 
@@ -451,7 +445,7 @@ function output_eMesh_sphere(rad::Float64=1.0, n_div::Int64=4)
         for k = 1:length(v_face_vert)
             push!(v_tet, SVector{4,Int64}(13, v_face_vert[k]...))
         end
-        ϵ = vcat(zeros(n_ico_vert), -1.0)
+        ϵ = vcat(zeros(n_ico_vert), 1.0)
         return eMesh(v, v_face_vert, v_tet, ϵ)
     end
 
@@ -462,7 +456,7 @@ function output_eMesh_sphere(rad::Float64=1.0, n_div::Int64=4)
         for k = 1:n_tri(eM)
             push!(i_tet, SVector{4,Int64}(n_center, eM.tri[k]...))
         end
-        ϵ = vcat(zeros(n_vert), -1.0)
+        ϵ = vcat(zeros(n_vert), 1.0)
         point = deepcopy(eM.point)
         push!(point, zeros(SVector{3,Float64}))
         return eMesh(point, eM.tri, i_tet, ϵ)
@@ -511,7 +505,7 @@ function output_box_ind()
         SVector{4, Int64}(5,7,6,8),  # +z
     )
     ϵ = zeros(Float64,8)
-    push!(ϵ, -1.0)
+    push!(ϵ, 1.0)
     tri = Vector{SVector{3,Int64}}()
     tet = Vector{SVector{4,Int64}}()
     for k = 1:6
@@ -540,11 +534,9 @@ function output_eMesh_box(r::Union{Float64,SVector{3,Float64}}=1.0, c::SVector{3
     ]
     tri, tet, ϵ = output_box_ind()
     e_mesh = eMesh(point, tri, tet, ϵ)
-    # scale!(e_mesh, r)
     r = r .* ones(SVector{3,Float64})
     eMesh_transform!(e_mesh, SMatrix{3,3,Float64,9}(r[1], 0, 0, 0, r[2], 0, 0, 0, r[3]))
     eMesh_transform!(e_mesh, c)
-    # dh_transform_mesh!(e_mesh, basic_dh(c))
     return e_mesh
 end
 
