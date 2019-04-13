@@ -50,6 +50,7 @@ function update_TT_Cache!(tt::TT_Cache, trans::SVector{3,Float64}, R::SMatrix{3,
 end
 
 Base.length(tt::TT_Cache) = length(tt.vc)
+Base.isempty(tt::TT_Cache) = isempty(tt.vc)
 Base.@propagate_inbounds Base.getindex(tt::TT_Cache, i::Int) = tt.vc[i]
 
 is_leaf(tree::bin_BB_Tree)     = (tree.id != -9999)
