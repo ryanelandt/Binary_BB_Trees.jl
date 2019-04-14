@@ -401,7 +401,7 @@ function output_eMesh_half_plane(plane_w::Float64=1.0, is_include_vis_sides::Boo
     return eMesh(point, tri, tet, ϵ)
 end
 
-function output_eMesh_sphere(rad::Float64=1.0, n_div::Int64=4)
+function output_eMesh_sphere(rad::Union{Float64,SVector{3,Float64}}=1.0, n_div::Int64=4)
     function make_icosahedron()
         φ = Base.MathConstants.golden
 
@@ -462,16 +462,20 @@ function output_eMesh_sphere(rad::Float64=1.0, n_div::Int64=4)
         return eMesh(point, eM.tri, i_tet, ϵ)
     end
 
-    function project_to_sphere!(eM::eMesh, rad::Float64=1.0)
+    function project_to_sphere!(eM::eMesh)
         for k = 1:n_point(eM)
-            eM.point[k] = normalize(eM.point[k]) * rad
+            eM.point[k] = normalize(eM.point[k])
         end
         return nothing
     end
 
     eM_ico = make_icosahedron()
     eM_ico_div = sub_div_mesh(eM_ico, n_div)
-    project_to_sphere!(eM_ico_div, rad)
+    project_to_sphere!(eM_ico_div)
+
+    rad = ones(SVector{3,Float64}) .* rad
+    eMesh_transform!(eM_ico_div, Diagonal(rad))
+
     return volumize_about(eM_ico_div)
 end
 
