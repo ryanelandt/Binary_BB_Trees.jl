@@ -48,10 +48,10 @@ export
     get_tri,
     get_tet,
     get_point,
-    scale!,
+    # scale!,
     verify_mesh,
     eMesh_transform!,
-    dh_transform_mesh!,
+    # dh_transform_mesh!,
     invert!,
     mesh_inplace_rekey!,
     mesh_remove_unused_points!,
@@ -61,7 +61,7 @@ export
     output_eMesh_half_plane,
     output_eMesh_sphere,
     output_eMesh_box,
-    output_eMesh_hole,
+    # output_eMesh_hole,
 
     # util.jl
     calc_min_max,
