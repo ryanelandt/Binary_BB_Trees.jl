@@ -69,6 +69,7 @@ export
     get_vertices_32,
     get_faces_32,
     crop_mesh,
+    sort_so_big_ϵ_last,
 
     # vector_cache.jl
     VectorCache,

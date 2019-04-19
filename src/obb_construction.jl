@@ -28,8 +28,7 @@ end
 fit_tri_obb(p::SVector{3,SVector{3,Float64}}) = make_obb(p, 1)  # all bounding boxes have the same surface area
 function fit_tet_obb(p::SVector{4,SVector{3,Float64}}, ϵ_tet::SVector{4,Float64})
     (0.0 < volume(p)) || error("inverted tet")
-    i_core = findfirst(ϵ_tet .!= 0.0)  # TODO: handle this more optimally
-    p = p[tet_perm_by_num(i_core)]  # rearrange so that a plane is made with the first three
+    p = sort_so_big_ϵ_last(ϵ_tet, p)
     obb_1 = make_obb(p, 1)
     obb_2 = make_obb(p, 2)
     obb_3 = make_obb(p, 3)
