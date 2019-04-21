@@ -57,7 +57,6 @@ end
             end
         end
         @test n_zero == 1
-        # println("n_point(eM_sphere): ", n_point(eM_sphere) )
         (k == 1) && @test n_point(eM_sphere) == 1 + 12
         (k == 2) && @test n_point(eM_sphere) == 1 + 12 + 30  # each edge bisected
         (k == 3) && @test n_point(eM_sphere) == 1 + 12 + 2 * 30 + 20  # each edge bisected + point in center

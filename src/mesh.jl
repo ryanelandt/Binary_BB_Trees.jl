@@ -37,12 +37,12 @@ struct eMesh{T1<:Union{Nothing,Tri},T2<:Union{Nothing,Tet}}
     end
     eMesh{Tri,Nothing}() = eMesh(Vector{SVector{3,Float64}}(), Vector{SVector{3,Int64}}(), nothing, nothing)
     eMesh{Nothing,Tet}() = eMesh(Vector{SVector{3,Float64}}(), nothing, Vector{SVector{4,Int64}}(), Vector{Float64}())
-    eMesh{Tri,Tet}() = eMesh(Vector{SVector{3,Float64}}(), Vector{SVector{3,Int64}}(), Vector{SVector{4,Int64}}(), Vector{Float64}())
+    eMesh{Tri,Tet}()     = eMesh(Vector{SVector{3,Float64}}(), Vector{SVector{3,Int64}}(), Vector{SVector{4,Int64}}(), Vector{Float64}())
 end
 
 as_tet_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, nothing, e_mesh.tet, e_mesh.ϵ)
 as_tri_eMesh(e_mesh::eMesh{Tri,Tet}) = eMesh(e_mesh.point, e_mesh.tri, nothing, nothing)
-as_tri_eMesh(e_mesh::eMesh{Tri,Nothing}) = deepcopy(e_mesh)
+# as_tri_eMesh(e_mesh::eMesh{Tri,Nothing}) = deepcopy(e_mesh)
 
 vertex_pos_for_tri_ind(eM::eMesh{Tri,T2}, k::Int64) where {T2} = eM.point[eM.tri[k]]
 vertex_pos_for_tet_ind(eM::eMesh{T1,Tet}, k::Int64) where {T1} = eM.point[eM.tet[k]]

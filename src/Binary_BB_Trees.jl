@@ -93,7 +93,8 @@ export
 
     # blob_types.jl
     blob,
-    triTetMeshToTreeAABB,
+    # triTetMeshToTreeAABB,
+    eMesh_to_tree,
 
     # top_down.jl
 

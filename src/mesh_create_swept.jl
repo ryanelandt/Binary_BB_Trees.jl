@@ -43,9 +43,6 @@ function add_rot_sym_segment!(eM, fun_gen, θ, ϕ, rad, is_open::NTuple{2,Bool})
         push!(eM.tri, SVector{3,Int64}(2,5,7) + n_offset)
     end
     append!(eM.ϵ, ϵ)
-    # for k = 0:3  # sanity check
-    #     (0.0 < volume(eM.point[eM.tet[end - k]])) || error("inverted element")
-    # end
     return nothing
 end
 

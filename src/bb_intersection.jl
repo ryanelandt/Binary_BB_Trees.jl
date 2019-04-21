@@ -3,11 +3,10 @@ function BB_BB_intersect(tt::TT_Cache, a::AABB, b::AABB)
     return BB_BB_intersect(a.e, b.e, t, tt.R_a_b, tt.abs_R_a_b)
 end
 
-
 function BB_BB_intersect(tt::TT_Cache, a::OBB, b::OBB)
-    i_dh_a = basic_dh(a.R', -a.R' * a.c)
-    dh_a_b = basic_dh(tt.R_a_b, tt.t_a_b)
-    dh_b = basic_dh(b.R, b.c)
+    i_dh_a = basic_dh(a.R', -a.R' * a.c)   # transform from frame A to   OBB A
+    dh_a_b = basic_dh(tt.R_a_b, tt.t_a_b)  # transform from frame B to frame A
+    dh_b   = basic_dh(b.R, b.c)            # transform from   OBB B to frame B
 
     dh_final = i_dh_a * dh_a_b * dh_b
     R_tot, t = dh_R_t(dh_final)
