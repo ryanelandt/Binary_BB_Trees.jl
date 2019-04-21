@@ -31,8 +31,8 @@ export
     BoundingBox,
     AABB,
     OBB,
-    boxArea,
-    boxVolume,
+    # boxArea,
+    # boxVolume,
 
     # mesh.jl
     Tri,
@@ -48,10 +48,8 @@ export
     get_tri,
     get_tet,
     get_point,
-    # scale!,
     verify_mesh,
     eMesh_transform!,
-    # dh_transform_mesh!,
     invert!,
     mesh_inplace_rekey!,
     mesh_remove_unused_points!,
@@ -61,7 +59,6 @@ export
     output_eMesh_half_plane,
     output_eMesh_sphere,
     output_eMesh_box,
-    # output_eMesh_hole,
 
     # util.jl
     calc_min_max,
@@ -93,7 +90,6 @@ export
 
     # blob_types.jl
     blob,
-    # triTetMeshToTreeAABB,
     eMesh_to_tree,
 
     # top_down.jl
@@ -108,13 +104,9 @@ export
 
     # mesh_create_swept.jl
     create_swept_mesh,
-    # make_swept_mesh_open,
-    # make_swept_mesh_closed,
-    # f_swept_helix,
     f_swept_circle,
     f_swept_triv
 
     # extensions.jl
-
 
 end # module

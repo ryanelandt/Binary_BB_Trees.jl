@@ -17,7 +17,7 @@ function createBlobDictionary(point::Vector{SVector{3,Float64}}, vec_tri_tet::Ve
         return dict_blob, true
     end
     for (k, ind_k) = enumerate(vec_tri_tet)
-        aabb_k = calc_aabb(point[ind_k])
+        aabb_k = calc_obb(point[ind_k])
         tree_k = bin_BB_Tree(k, aabb_k)
         dict_blob[k] = blob(k, 1, vec_neighbor[k], tree_k, scale)
     end
@@ -68,13 +68,13 @@ function createSharedEdgeFaceDict(vec_tri_tet::Vector{SVector{N,Int64}}) where {
     return dict_vert_pair, false
 end
 
-function blobCost(aabb::AABB, n_below::Int64, scale::Float64)
+function blobCost(aabb::OBB, n_below::Int64, scale::Float64)
     cA = 1.0
     cV = 1.0
     V = 0.0
     V += n_below * log2(2 * n_below)
-    V += cA * boxArea(aabb) / (scale^2)
-    V += cV * boxVolume(aabb) / (scale^3)
+    V += cA * area(aabb) / (scale^2)
+    V += cV * volume(aabb) / (scale^3)
     return V  # PriorityQueue returns lowest first
 end
 
@@ -89,7 +89,7 @@ function doCombineBlob(dict_blob, a::blob, b::blob, k_next::Int64, scale::Float6
 end
 
 function calcMarginalCost(a::blob, b::blob, scale::Float64)
-    c_cost = blobCost(AABB(a.bin_BB_Tree.box, b.bin_BB_Tree.box), a.n_below + b.n_below, scale)
+    c_cost = blobCost(OBB(a.bin_BB_Tree.box, b.bin_BB_Tree.box), a.n_below + b.n_below, scale)
     return c_cost - a.cost - b.cost
 end
 
@@ -137,8 +137,7 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
     point = eM.point
     vec_tri_tet = ifelse(isa(eM, eMesh{Tri,Nothing}), eM.tri, eM.tet)
 
-    # final_AABB = calc_aabb(point)
-    scale = sum(calc_aabb(point).e) / 3
+    scale = sum(calc_obb(point).e) / 3
 
     dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)
     if is_abort  # non-connected meshes cannot be created "bottom up"

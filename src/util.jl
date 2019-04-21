@@ -14,7 +14,7 @@ function minMaxToCenterExtent(box_min::SVector{3,Float64}, box_max::SVector{3,Fl
 end
 
 ### calc_min_max
-calc_min_max(a::AABB) = a.c - a.e, a.c + a.e
+# calc_min_max(a::AABB) = a.c - a.e, a.c + a.e
 function calc_min_max(a::OBB)
     δ = abs.(a.R) * a.e
     return a.c - δ, a.c + δ
@@ -51,6 +51,23 @@ function calc_aabb(a::SVector{3,Float64}, b::SVector{3,Float64})
     return AABB(center, extent)
 end
 
+### calc_obb
+function calc_obb(vert::SVector{N, SVector{3,Float64}}) where {N}
+    box_min = findMinSVSV(vert)
+    box_max = findMaxSVSV(vert)
+    return calc_obb(box_min, box_max)
+end
+function calc_obb(arg_in)
+    min_val, max_val = calc_min_max(arg_in)
+    return calc_obb(min_val, max_val)
+end
+function calc_obb(a::SVector{3,Float64}, b::SVector{3,Float64})
+    min_val, max_val = calc_min_max(a, b)
+    center, extent = minMaxToCenterExtent(min_val, max_val)
+    return OBB(center, extent, one(SMatrix{3,3,Float64,9}))
+end
+
+
 function sortEdgeFace(v::SVector{3,Int64}, k::Int64)
     three = 3
     (1 <= k <= three) || error("a triangle has three sides")
@@ -71,8 +88,8 @@ function sortEdgeFace(v::SVector{4,Int64}, k::Int64)
     return SVector{3,Int64}(i1, i2, i3)
 end
 
-get_vertices_32(e_mesh::eMesh{T1,T2}) where {T1,T2} = [Point{3,Float32}(k) for k = e_mesh.point]
-get_faces_32(e_mesh::eMesh{Tri,T2}) where {T2} = [Face{3,Int32}(k) for k = e_mesh.tri]
+get_vertices_32(e_mesh::eMesh{T1,T2})  where {T1,T2} = [Point{3,Float32}(k) for k = e_mesh.point]
+get_faces_32(   e_mesh::eMesh{Tri,T2}) where {T2}    = [Face{3,Int32}(k)    for k = e_mesh.tri]
 
 function sort_so_big_ϵ_last(ϵ::SVector{4,Float64}, thing::SVector{4,T}) where {T}
 	ϵ = abs.(ϵ)
