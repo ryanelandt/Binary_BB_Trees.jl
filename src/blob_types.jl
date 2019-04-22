@@ -10,14 +10,16 @@ struct blob
     end
 end
 
-function createBlobDictionary(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}, scale::Float64) where {N}
+# function createBlobDictionary(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}, scale::Float64) where {N}
+function createBlobDictionary(eM::eMesh, vec_obb_leaf::Vector{OBB}, vec_tri_tet, scale::Float64)
     vec_neighbor, is_abort = extractTriTetNeighborInformation(vec_tri_tet)
     dict_blob = Dict{Int64,blob}()
     if is_abort
         return dict_blob, true
     end
     for (k, ind_k) = enumerate(vec_tri_tet)
-        aabb_k = calc_obb(point[ind_k])
+        # aabb_k = calc_obb(point[ind_k])
+        aabb_k = vec_obb_leaf[k]
         tree_k = bin_BB_Tree(k, aabb_k)
         dict_blob[k] = blob(k, 1, vec_neighbor[k], tree_k, scale)
     end
@@ -72,9 +74,13 @@ function blobCost(aabb::OBB, n_below::Int64, scale::Float64)
     cA = 1.0
     cV = 1.0
     V = 0.0
-    V += n_below * log2(2 * n_below)
-    V += cA * area(aabb) / (scale^2)
-    V += cV * volume(aabb) / (scale^3)
+    if false
+        V += n_below * log2(2 * n_below)
+        V += cA * area(aabb) / (scale^2)
+        V += cV * volume(aabb) / (scale^3)
+    else
+        V += n_below^(1.5) * area(aabb)
+    end
     return V  # PriorityQueue returns lowest first
 end
 
@@ -139,7 +145,15 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
 
     scale = sum(calc_obb(point).e) / 3
 
-    dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)
+    if T1 == Tri
+        vec_obb_leaf = [fit_tri_obb(eM.point[k]) for k = eM.tri]
+    else
+        vec_obb_leaf = [fit_tet_obb(eM.point[k], eM.ϵ[k]) for k = eM.tet]
+    end
+
+    # dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)
+    dict_blob, is_abort = createBlobDictionary(eM, vec_obb_leaf, vec_tri_tet, scale)
+
     if is_abort  # non-connected meshes cannot be created "bottom up"
         return top_down(point, vec_tri_tet)
     end

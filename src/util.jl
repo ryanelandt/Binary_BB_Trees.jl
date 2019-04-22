@@ -35,21 +35,21 @@ function calc_min_max(a::SVector{3,Float64}, b::SVector{3,Float64})
     return min_, max_
 end
 
-### calc_aabb
-function calc_aabb(vert::SVector{N, SVector{3,Float64}}) where {N}
-    box_min = findMinSVSV(vert)
-    box_max = findMaxSVSV(vert)
-    return calc_aabb(box_min, box_max)
-end
-function calc_aabb(arg_in)
-    min_val, max_val = calc_min_max(arg_in)
-    return calc_aabb(min_val, max_val)
-end
-function calc_aabb(a::SVector{3,Float64}, b::SVector{3,Float64})
-    min_val, max_val = calc_min_max(a, b)
-    center, extent = minMaxToCenterExtent(min_val, max_val)
-    return AABB(center, extent)
-end
+# ### calc_aabb
+# function calc_aabb(vert::SVector{N, SVector{3,Float64}}) where {N}
+#     box_min = findMinSVSV(vert)
+#     box_max = findMaxSVSV(vert)
+#     return calc_aabb(box_min, box_max)
+# end
+# function calc_aabb(arg_in)
+#     min_val, max_val = calc_min_max(arg_in)
+#     return calc_aabb(min_val, max_val)
+# end
+# function calc_aabb(a::SVector{3,Float64}, b::SVector{3,Float64})
+#     min_val, max_val = calc_min_max(a, b)
+#     center, extent = minMaxToCenterExtent(min_val, max_val)
+#     return AABB(center, extent)
+# end
 
 ### calc_obb
 function calc_obb(vert::SVector{N, SVector{3,Float64}}) where {N}

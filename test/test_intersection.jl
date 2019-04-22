@@ -37,8 +37,8 @@ function outputEdgeByNumber(k::Int64)
 end
 
 function face_corner_test(tt::TT_Cache, dir_1::SVector{3,Float64}, dir_2::SVector{3,Float64})
-  aabb_1 = AABB(zero_three, box_1_extent)
-  aabb_2 = AABB(zero_three, box_2_extent)
+  aabb_1 = OBB(zero_three, box_1_extent, I3)
+  aabb_2 = OBB(zero_three, box_2_extent, I3)
   vec_1 = dir_1 .* aabb_1.e
   vec_2 = dir_2 .* aabb_2.e
   R_total = RotMatrix(rotation_between(dir_2, dir_1))
@@ -51,8 +51,8 @@ function face_corner_test(tt::TT_Cache, dir_1::SVector{3,Float64}, dir_2::SVecto
 end
 
 function edge_edge_test(tt::TT_Cache, dir_1::SVector{3,Float64}, theta_axis::Float64, R_box_2::Rotation{3, Float64})
-  aabb_1 = AABB(zero_three, one_three)
-  aabb_2 = AABB(zero_three, one_three)
+  aabb_1 = OBB(zero_three, one_three, I3)
+  aabb_2 = OBB(zero_three, one_three, I3)
   vec_1 = dir_1 .* aabb_1.e
   R_total = RotMatrix(Quat(AngleAxis(theta_axis, vec_1[1], vec_1[2], vec_1[3])) * R_box_2)
   total_sep_dist = vec_1 * 2
@@ -72,6 +72,7 @@ n_face       = 6
 n_corner     = 8
 n_edge       = 12
 tolerance    = 1.0e-6
+I3           = one(SMatrix{3,3,Float64,9})
 
 @testset "OBB OBB Face Face Test" begin
   for k_face = 1:n_face

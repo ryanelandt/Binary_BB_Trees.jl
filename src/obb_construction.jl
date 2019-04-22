@@ -40,14 +40,14 @@ function fit_tet_obb(p::SVector{4,SVector{3,Float64}}, ϵ_tet::SVector{4,Float64
     (max(area_1, area_2        ) <= area_3) && (return obb_3)
 end
 
-function obb_tree_from_aabb(e_tri::bin_BB_Tree, all_obb_tri::Vector{OBB})
-    if is_leaf(e_tri)
-        id_ = e_tri.id
-        return bin_BB_Tree(id_, all_obb_tri[id_])
-    else
-        box = OBB(e_tri.box)
-        node_1 = obb_tree_from_aabb(e_tri.node_1, all_obb_tri)
-        node_2 = obb_tree_from_aabb(e_tri.node_2, all_obb_tri)
-        return bin_BB_Tree(box, node_1, node_2)
-    end
-end
+# function obb_tree_from_aabb(e_tri::bin_BB_Tree, all_obb_tri::Vector{OBB})
+#     if is_leaf(e_tri)
+#         id_ = e_tri.id
+#         return bin_BB_Tree(id_, all_obb_tri[id_])
+#     else
+#         box = OBB(e_tri.box)
+#         node_1 = obb_tree_from_aabb(e_tri.node_1, all_obb_tri)
+#         node_2 = obb_tree_from_aabb(e_tri.node_2, all_obb_tri)
+#         return bin_BB_Tree(box, node_1, node_2)
+#     end
+# end

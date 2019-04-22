@@ -29,7 +29,7 @@ include("extensions.jl")
 export
     # box_types.jl
     BoundingBox,
-    AABB,
+    # AABB,
     OBB,
     # boxArea,
     # boxVolume,
@@ -62,7 +62,7 @@ export
 
     # util.jl
     calc_min_max,
-    calc_aabb,
+    # calc_aabb,
     get_vertices_32,
     get_faces_32,
     crop_mesh,
@@ -97,7 +97,7 @@ export
     # obb_construction.jl
     fit_tet_obb,
     fit_tri_obb,
-    obb_tree_from_aabb,
+    # obb_tree_from_aabb,
 
     # mesh_create_rot_sym.jl
     obj_from_point_sequence,
