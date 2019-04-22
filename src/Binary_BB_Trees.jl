@@ -63,6 +63,7 @@ export
     # util.jl
     calc_min_max,
     # calc_aabb,
+    calc_obb,
     get_vertices_32,
     get_faces_32,
     crop_mesh,

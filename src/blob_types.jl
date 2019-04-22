@@ -5,7 +5,10 @@ struct blob
     neighbor::Set{Int64}
     bin_BB_Tree::bin_BB_Tree
     function blob(k::Int64, n_below::Int64, neighbor_in, bb_tree::bin_BB_Tree, scale::Float64)
-        cost = blobCost(bb_tree.box, n_below, scale)
+        # cost = blobCost(bb_tree.box, n_below, scale)
+        bbb = bb_tree.box
+        bbb = OBB(bbb, bbb)
+        cost = blobCost(bbb, n_below, scale)
         return new(k, n_below, cost, Set{Int64}(neighbor_in), bb_tree)
     end
 end
@@ -74,13 +77,13 @@ function blobCost(aabb::OBB, n_below::Int64, scale::Float64)
     cA = 1.0
     cV = 1.0
     V = 0.0
-    if false
+    # if true
         V += n_below * log2(2 * n_below)
         V += cA * area(aabb) / (scale^2)
         V += cV * volume(aabb) / (scale^3)
-    else
-        V += n_below^(1.5) * area(aabb)
-    end
+    # else
+    #     V += n_below^(1.5) * area(aabb)
+    # end
     return V  # PriorityQueue returns lowest first
 end
 
@@ -146,26 +149,30 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
     scale = sum(calc_obb(point).e) / 3
 
     if T1 == Tri
-        vec_obb_leaf = [fit_tri_obb(eM.point[k]) for k = eM.tri]
+        vec_obb_leaf = [calc_obb(eM.point[k]) for k = eM.tri]
     else
-        vec_obb_leaf = [fit_tet_obb(eM.point[k], eM.ϵ[k]) for k = eM.tet]
+        vec_obb_leaf = [calc_obb(eM.point[k]) for k = eM.tet]
     end
 
     # dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)
     dict_blob, is_abort = createBlobDictionary(eM, vec_obb_leaf, vec_tri_tet, scale)
 
-    if is_abort  # non-connected meshes cannot be created "bottom up"
-        return top_down(point, vec_tri_tet)
-    end
+    is_abort && error("not implemented error: disconnected mesh")
+
+    # if is_abort  # non-connected meshes cannot be created "bottom up"
+        # return top_down(point, vec_tri_tet)
+    # end
 
     pq_delta_cost = createBlobPriorityQueue(dict_blob, scale)
     bottomUp!(dict_blob, pq_delta_cost, scale)
     all_tree = collect(values(dict_blob))
     if (length(all_tree) != 1)
-        @warn "mesh is noncontinuous"
-        vec_bin_BB_Tree = [all_tree[k].bin_BB_Tree for k = 1:length(all_tree)]
-        return recursive_top_down(vec_bin_BB_Tree)
+        error("not implemented error: disconnected mesh")
+        # @warn "mesh is noncontinuous"
+        # vec_bin_BB_Tree = [all_tree[k].bin_BB_Tree for k = 1:length(all_tree)]
+        # return recursive_top_down(vec_bin_BB_Tree)
     else
+        
         return all_tree[1].bin_BB_Tree
     end
 end
