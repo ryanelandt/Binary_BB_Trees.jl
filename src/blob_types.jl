@@ -143,6 +143,16 @@ end
 function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
     isa(eM, eMesh{Tri,Tet}) && error("Cannot create tree for eMesh{Tri,Tet} use as_tri_eMesh or as_tet_eMesh on input first.")
 
+    n_leaf = ifelse(T1==Tri, n_tri, n_tet)(eM)
+    if (n_leaf == 1)
+        if T1 == Tri
+            obb = calc_obb(eM.point[eM.tri[1]])
+        else
+            obb = calc_obb(eM.point[eM.tet[1]])
+        end
+        return bin_BB_Tree(1, obb) 
+    end
+
     point = eM.point
     vec_tri_tet = ifelse(isa(eM, eMesh{Tri,Nothing}), eM.tri, eM.tet)
 
@@ -172,7 +182,7 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
         # vec_bin_BB_Tree = [all_tree[k].bin_BB_Tree for k = 1:length(all_tree)]
         # return recursive_top_down(vec_bin_BB_Tree)
     else
-        
+
         return all_tree[1].bin_BB_Tree
     end
 end
