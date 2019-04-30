@@ -150,7 +150,7 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
         else
             obb = calc_obb(eM.point[eM.tet[1]])
         end
-        return bin_BB_Tree(1, obb) 
+        return bin_BB_Tree(1, obb)
     end
 
     point = eM.point
@@ -169,6 +169,8 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
 
     is_abort && error("not implemented error: disconnected mesh")
 
+
+
     # if is_abort  # non-connected meshes cannot be created "bottom up"
         # return top_down(point, vec_tri_tet)
     # end
@@ -183,7 +185,30 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
         # return recursive_top_down(vec_bin_BB_Tree)
     else
 
-        return all_tree[1].bin_BB_Tree
+        tree = all_tree[1].bin_BB_Tree
+
+        tight_fit_leaves!(eM, tree)
+
+        return tree
+
+        # return all_tree[1].bin_BB_Tree
+    end
+end
+
+function tight_fit_leaf!(eM::eMesh{Tri,Nothing}, eT::bin_BB_Tree{OBB})
+    eT.box = fit_tri_obb(vertex_pos_for_tri_ind(eM, eT.id))
+end
+
+function tight_fit_leaf!(eM::eMesh{Nothing,Tet}, eT::bin_BB_Tree{OBB})
+    eT.box = fit_tet_obb(vertex_pos_for_tet_ind(eM, eT.id), eM.ϵ[eM.tet[eT.id]])
+end
+
+function tight_fit_leaves!(eM::eMesh, eT::bin_BB_Tree{OBB})
+    if is_leaf(eT)
+        tight_fit_leaf!(eM, eT)
+    else
+        tight_fit_leaves!(eM, eT.node_1)
+        tight_fit_leaves!(eM, eT.node_2)
     end
 end
 
