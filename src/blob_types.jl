@@ -5,7 +5,6 @@ struct blob
     neighbor::Set{Int64}
     bin_BB_Tree::bin_BB_Tree
     function blob(k::Int64, n_below::Int64, neighbor_in, bb_tree::bin_BB_Tree, scale::Float64)
-        # cost = blobCost(bb_tree.box, n_below, scale)
         bbb = bb_tree.box
         bbb = OBB(bbb, bbb)
         cost = blobCost(bbb, n_below, scale)
@@ -13,7 +12,6 @@ struct blob
     end
 end
 
-# function createBlobDictionary(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}, scale::Float64) where {N}
 function createBlobDictionary(eM::eMesh, vec_obb_leaf::Vector{OBB}, vec_tri_tet, scale::Float64)
     vec_neighbor, is_abort = extractTriTetNeighborInformation(vec_tri_tet)
     dict_blob = Dict{Int64,blob}()
@@ -21,7 +19,6 @@ function createBlobDictionary(eM::eMesh, vec_obb_leaf::Vector{OBB}, vec_tri_tet,
         return dict_blob, true
     end
     for (k, ind_k) = enumerate(vec_tri_tet)
-        # aabb_k = calc_obb(point[ind_k])
         aabb_k = vec_obb_leaf[k]
         tree_k = bin_BB_Tree(k, aabb_k)
         dict_blob[k] = blob(k, 1, vec_neighbor[k], tree_k, scale)
@@ -77,13 +74,9 @@ function blobCost(aabb::OBB, n_below::Int64, scale::Float64)
     cA = 1.0
     cV = 1.0
     V = 0.0
-    # if true
-        V += n_below * log2(2 * n_below)
-        V += cA * area(aabb) / (scale^2)
-        V += cV * volume(aabb) / (scale^3)
-    # else
-    #     V += n_below^(1.5) * area(aabb)
-    # end
+    V += n_below * log2(2 * n_below)
+    V += cA * area(aabb) / (scale^2)
+    V += cV * volume(aabb) / (scale^3)
     return V  # PriorityQueue returns lowest first
 end
 
@@ -142,7 +135,6 @@ end
 
 function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
     isa(eM, eMesh{Tri,Tet}) && error("Cannot create tree for eMesh{Tri,Tet} use as_tri_eMesh or as_tet_eMesh on input first.")
-
     n_leaf = ifelse(T1==Tri, n_tri, n_tet)(eM)
     if (n_leaf == 1)
         if T1 == Tri
@@ -152,21 +144,15 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
         end
         return bin_BB_Tree(1, obb)
     end
-
     point = eM.point
     vec_tri_tet = ifelse(isa(eM, eMesh{Tri,Nothing}), eM.tri, eM.tet)
-
     scale = sum(calc_obb(point).e) / 3
-
     if T1 == Tri
         vec_obb_leaf = [calc_obb(eM.point[k]) for k = eM.tri]
     else
         vec_obb_leaf = [calc_obb(eM.point[k]) for k = eM.tet]
     end
-
-    # dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)
     dict_blob, is_abort = createBlobDictionary(eM, vec_obb_leaf, vec_tri_tet, scale)
-
     is_abort && error("not implemented error: disconnected mesh")
 
 
@@ -180,9 +166,6 @@ function eMesh_to_tree(eM::eMesh{T1,T2}) where {T1,T2}
     all_tree = collect(values(dict_blob))
     if (length(all_tree) != 1)
         error("not implemented error: disconnected mesh")
-        # @warn "mesh is noncontinuous"
-        # vec_bin_BB_Tree = [all_tree[k].bin_BB_Tree for k = 1:length(all_tree)]
-        # return recursive_top_down(vec_bin_BB_Tree)
     else
 
         tree = all_tree[1].bin_BB_Tree
@@ -211,32 +194,3 @@ function tight_fit_leaves!(eM::eMesh, eT::bin_BB_Tree{OBB})
         tight_fit_leaves!(eM, eT.node_2)
     end
 end
-
-# function triTetMeshToTreeAABB(point::Vector{SVector{3,Float64}}, vec_tri_tet::Vector{SVector{N,Int64}}) where {N}
-#     (N == 3) || (N == 4) || error("N is $N. N should be 3 for triangle mesh or 4 for tetrahedral mesh")
-#
-#     final_AABB = calc_aabb(point)
-#     scale = sum(final_AABB.e) / 3
-#
-#     dict_blob, is_abort = createBlobDictionary(point, vec_tri_tet, scale)
-#     if is_abort  # non-connected meshes cannot be created "bottom up"
-#         return top_down(point, vec_tri_tet)
-#     end
-#
-#     pq_delta_cost = createBlobPriorityQueue(dict_blob, scale)
-#     bottomUp!(dict_blob, pq_delta_cost, scale)
-#     all_tree = collect(values(dict_blob))
-#     if (length(all_tree) != 1)
-#         @warn "mesh is noncontinuous"
-#         vec_bin_BB_Tree = [all_tree[k].bin_BB_Tree for k = 1:length(all_tree)]
-#         return recursive_top_down(vec_bin_BB_Tree)
-#     else
-#         return all_tree[1].bin_BB_Tree
-#     end
-# end
-
-# function triTetMeshToTreeAABB(hm::HomogenousMesh)
-#     point = get_h_mesh_vertices(hm)
-#     vec_tri = get_h_mesh_faces(hm)
-#     return triTetMeshToTreeAABB(point, vec_tri)
-# end
