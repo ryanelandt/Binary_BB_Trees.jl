@@ -3,7 +3,7 @@ __precompile__(true)
 module Binary_BB_Trees
 
 using Printf
-using GeometryTypes: HomogenousMesh, Face, Point
+using GeometryTypes: HomogenousMesh
 using Rotations
 using LinearAlgebra
 using StaticArrays
@@ -29,10 +29,7 @@ include("extensions.jl")
 export
     # box_types.jl
     BoundingBox,
-    # AABB,
     OBB,
-    # boxArea,
-    # boxVolume,
 
     # mesh.jl
     Tri,
@@ -62,10 +59,7 @@ export
 
     # util.jl
     calc_min_max,
-    # calc_aabb,
     calc_obb,
-    get_vertices_32,
-    get_faces_32,
     crop_mesh,
     sort_so_big_ϵ_last,
 
@@ -98,7 +92,6 @@ export
     # obb_construction.jl
     fit_tet_obb,
     fit_tri_obb,
-    # obb_tree_from_aabb,
 
     # mesh_create_rot_sym.jl
     obj_from_point_sequence,

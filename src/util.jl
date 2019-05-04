@@ -88,9 +88,6 @@ function sortEdgeFace(v::SVector{4,Int64}, k::Int64)
     return SVector{3,Int64}(i1, i2, i3)
 end
 
-get_vertices_32(e_mesh::eMesh{T1,T2})  where {T1,T2} = [Point{3,Float32}(k) for k = e_mesh.point]
-get_faces_32(   e_mesh::eMesh{Tri,T2}) where {T2}    = [Face{3,Int32}(k)    for k = e_mesh.tri]
-
 function sort_so_big_ϵ_last(ϵ::SVector{4,Float64}, thing::SVector{4,T}) where {T}
 	ϵ = abs.(ϵ)
 	v, i = findmax(ϵ)
